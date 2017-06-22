@@ -2,7 +2,6 @@ package com.endoman123.pieces;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.Array;
-import com.endoman123.board.Board;
 import com.endoman123.board.Cell;
 import com.endoman123.util.Assets;
 
@@ -21,36 +20,39 @@ public class Pawn extends Piece {
     }
 
     @Override
-    public Array<Cell> getMoves(Board board, int file, int rank) {
-        int dir;
+    public Array<Cell> getMoves(Cell[][] board, int file, int rank) {
+        int dir = getTeam().getDirection(), fwd = rank + dir, fwd2 = rank + 2 * dir, left = file - 1, right = file + 1;
         boolean hasMoved;
 
         // You should always clear the moves list
         POSSIBLE_MOVES.clear();
 
-        if (getTeam().equals(Team.WHITE)) {
-            dir = 1; // Going forward
-            hasMoved = rank == 1;
-        } else {
-            dir = -1; // Going backward
-            hasMoved = rank == 6;
+        if (getTeam() == Team.WHITE)
+            hasMoved = rank != 1;
+        else
+            hasMoved = rank != 6;
+
+        if (fwd < board.length) {
+            if (board[fwd][file].getPiece() == null) {
+                POSSIBLE_MOVES.add(board[fwd][file]);
+                if (board[fwd2][file].getPiece() == null && !hasMoved)
+                    POSSIBLE_MOVES.add(board[fwd2][file]);
+            }
         }
 
-        Cell
-            fwd1 = board.getCellAt(file, rank + dir),
-            fwd2 = board.getCellAt(file, rank + 2 * dir),
-            attackL = board.getCellAt(file - 1, rank + dir),
-            attackR = board.getCellAt(file + 1, rank + dir);
+        if (left >= 0) {
+            Cell attack = board[fwd][left];
 
-        if (fwd1.getPiece() == null) {
-            POSSIBLE_MOVES.add(fwd1);
-            if (hasMoved && fwd2.getPiece() == null)
-                POSSIBLE_MOVES.add(fwd2);
+            if (attack.getPiece() != null && attack.getPiece().getTeam() != getTeam())
+            POSSIBLE_MOVES.add(attack);
         }
-        if (attackL != null && attackL.getPiece() != null && !attackL.getPiece().getTeam().equals(getTeam()))
-            POSSIBLE_MOVES.add(attackL);
-        if (attackR != null && attackR.getPiece() != null && !attackR.getPiece().getTeam().equals(getTeam()))
-            POSSIBLE_MOVES.add(attackR);
+
+        if (right < board[0].length) {
+            Cell attack = board[fwd][right];
+
+            if (attack.getPiece() != null && attack.getPiece().getTeam() != getTeam())
+                POSSIBLE_MOVES.add(attack);
+        }
 
         return POSSIBLE_MOVES;
     }

@@ -2,7 +2,6 @@ package com.endoman123.pieces;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.Array;
-import com.endoman123.board.Board;
 import com.endoman123.board.Cell;
 import com.endoman123.util.Assets;
 
@@ -21,7 +20,7 @@ public class Queen extends Piece {
     }
 
     @Override
-    public Array<Cell> getMoves(Board board, int file, int rank) {
+    public Array<Cell> getMoves(Cell[][] board, int file, int rank) {
         boolean endUp = false, endDown = false, endLeft = false, endRight = false, endUR = false, endUL = false, endDR = false, endDL = false;
         // You should always clear the moves list
         POSSIBLE_MOVES.clear();
@@ -29,143 +28,106 @@ public class Queen extends Piece {
         // Clever raycast of sorts I guess
         int i = 1;
         while (!endUp || !endDown || !endLeft || !endRight || !endUR || !endUL || !endDR || !endDL) {
+            int up = rank + i;
+            int down = rank - i;
+            int left = file - i;
+            int right = file + i;
+
+            endUp = endUp || up >= board.length;
+            endDown = endDown || down < 0;
+            endLeft = endLeft || left < 0;
+            endRight = endRight || right >= board.length;
+
+            endUR = endUR || up >= board.length || right >= board[0].length;
+            endUL = endUL || up >= board.length || left < 0;
+            endDR = endDR || down < 0 || right == board[0].length;
+            endDL = endDL || down < 0 || left < 0;
+
             if (!endUp) {
-                int up = rank + i;
+                Cell c = board[up][file];
 
-                if (up == board.NUM_RANKS)
+                if (c.getPiece() != null) {
                     endUp = true;
-                else {
-                    Cell c = board.getCellAt(file, up);
-
-                    if (c.getPiece() != null) {
-                        endUp = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endRight) {
-                int right = file + i;
+                Cell c = board[rank][right];
 
-                if (right == board.NUM_FILES)
+                if (c.getPiece() != null) {
                     endRight = true;
-                else {
-                    Cell c = board.getCellAt(right, rank);
-
-                    if (c.getPiece() != null) {
-                        endRight = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endDown) {
-                int down = rank - i;
+                Cell c = board[down][file];
 
-                if (down < 0)
+                if (c.getPiece() != null) {
                     endDown = true;
-                else {
-                    Cell c = board.getCellAt(file, down);
-
-                    if (c.getPiece() != null) {
-                        endDown = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endLeft) {
-                int left = file - i;
+                Cell c = board[rank][left];
 
-                if (left < 0)
+                if (c.getPiece() != null) {
                     endLeft = true;
-                else {
-                    Cell c = board.getCellAt(left, rank);
-
-                    if (c.getPiece() != null) {
-                        endLeft = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endUR) {
-                int up = rank + i;
-                int right = file + i;
+                Cell c = board[up][right];
 
-                if (up == board.NUM_RANKS || right == board.NUM_FILES)
+                if (c.getPiece() != null) {
                     endUR = true;
-                else {
-                    Cell c = board.getCellAt(right, up);
-
-                    if (c.getPiece() != null) {
-                        endUR = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endUL) {
-                int up = rank + i;
-                int left = file - i;
+                Cell c = board[up][left];
 
-                if (up == board.NUM_RANKS || left < 0)
+                if (c.getPiece() != null) {
                     endUL = true;
-                else {
-                    Cell c = board.getCellAt(left, up);
-
-                    if (c.getPiece() != null) {
-                        endUL = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endDR) {
-                int down = rank - i;
-                int right = file + i;
-
-                if (down < 0 || right == board.NUM_FILES)
+                Cell c = board[down][right];
+                if (c.getPiece() != null) {
                     endDR = true;
-                else {
-                    Cell c = board.getCellAt(right, down);
-                    if (c.getPiece() != null) {
-                        endDR = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endDL) {
-                int down = rank - i;
-                int left = file - i;
+                Cell c = board[down][left];
 
-                if (down < 0 || left < 0)
+                if (c.getPiece() != null) {
                     endDL = true;
-                else {
-                    Cell c = board.getCellAt(left, down);
-
-                    if (c.getPiece() != null) {
-                        endDL = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             i++;

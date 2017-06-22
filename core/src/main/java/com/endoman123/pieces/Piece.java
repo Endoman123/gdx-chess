@@ -2,7 +2,6 @@ package com.endoman123.pieces;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.utils.Array;
-import com.endoman123.board.Board;
 import com.endoman123.board.Cell;
 
 /**
@@ -10,7 +9,7 @@ import com.endoman123.board.Cell;
  *
  * @author Jared Tulayan
  */
-public abstract class Piece {
+public abstract class Piece implements Cloneable {
     private Team team; // Team is based on index, might change to enum
     private Sprite sprite;
     private final Character ID;
@@ -44,14 +43,18 @@ public abstract class Piece {
     /**
      * Updates the list of moves that this piece can make.
      *
-     * @param board the {@code Board} object
+     * @param board the list of cells that make up the board
      * @param file  the piece's current file
      * @param rank  the piece's current rank
      * @return the list of possible moves
      */
-    public abstract Array<Cell> getMoves(Board board, int file, int rank);
+    public abstract Array<Cell> getMoves(Cell[][] board, int file, int rank);
 
     public String toString() {
         return ID.toString().trim();
+    }
+
+    public Piece cpy() throws CloneNotSupportedException {
+        return (Piece) clone();
     }
 }

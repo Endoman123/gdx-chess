@@ -2,7 +2,6 @@ package com.endoman123.pieces;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.Array;
-import com.endoman123.board.Board;
 import com.endoman123.board.Cell;
 import com.endoman123.util.Assets;
 
@@ -21,7 +20,7 @@ public class Rook extends Piece {
     }
 
     @Override
-    public Array<Cell> getMoves(Board board, int file, int rank) {
+    public Array<Cell> getMoves(Cell[][] board, int file, int rank) {
         boolean endUp = false, endDown = false, endLeft = false, endRight = false;
         // You should always clear the moves list
         POSSIBLE_MOVES.clear();
@@ -29,72 +28,58 @@ public class Rook extends Piece {
         // Clever raycast of sorts I guess
         int i = 1;
         while (!endUp || !endDown || !endLeft || !endRight) {
+            int up = rank + i;
+            int down = rank - i;
+            int left = file - i;
+            int right = file + i;
+
+            endUp = endUp || up >= board.length;
+            endDown = endDown || down < 0;
+            endLeft = endLeft || left < 0;
+            endRight = endRight || right >= board.length;
+
             if (!endUp) {
-                int up = rank + i;
+                Cell c = board[up][file];
 
-                if (up == board.NUM_RANKS)
+                if (c.getPiece() != null) {
                     endUp = true;
-                else {
-                    Cell c = board.getCellAt(file, up);
-
-                    if (c.getPiece() != null) {
-                        endUp = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endRight) {
-                int right = file + i;
+                Cell c = board[rank][right];
 
-                if (right == board.NUM_FILES)
+                if (c.getPiece() != null) {
                     endRight = true;
-                else {
-                    Cell c = board.getCellAt(right, rank);
-
-                    if (c.getPiece() != null) {
-                        endRight = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endDown) {
-                int down = rank - i;
+                Cell c = board[down][file];
 
-                if (down < 0)
+                if (c.getPiece() != null) {
                     endDown = true;
-                else {
-                    Cell c = board.getCellAt(file, down);
-
-                    if (c.getPiece() != null) {
-                        endDown = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             if (!endLeft) {
-                int left = file - i;
+                Cell c = board[rank][left];
 
-                if (left < 0)
+                if (c.getPiece() != null) {
                     endLeft = true;
-                else {
-                    Cell c = board.getCellAt(left, rank);
-
-                    if (c.getPiece() != null) {
-                        endLeft = true;
-                        if (c.getPiece().getTeam() != getTeam())
-                            POSSIBLE_MOVES.add(c);
-                    } else
+                    if (c.getPiece().getTeam() != getTeam())
                         POSSIBLE_MOVES.add(c);
-                }
+                } else
+                    POSSIBLE_MOVES.add(c);
             }
 
             i++;

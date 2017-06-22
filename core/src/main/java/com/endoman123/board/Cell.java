@@ -17,6 +17,11 @@ public class Cell {
     private Piece piece;
     private final TextureRegion BG;
 
+    /**
+     * Creates a new cell with the specified file and rank.
+     * @param f the file of the cell
+     * @param r the rank of the cell
+     */
     public Cell(int f, int r) {
         FILE = f;
         RANK = r;
@@ -27,6 +32,22 @@ public class Cell {
             BG = t.findRegion("black");
         else
             BG = t.findRegion("white");
+    }
+
+    /**
+     * Copy constructor
+     * @param c the cell to copy
+     */
+    public Cell(Cell c) throws CloneNotSupportedException {
+        FILE = c.FILE;
+        RANK = c.RANK;
+
+        if (c.piece != null)
+            piece = c.piece.cpy();
+        else
+            piece = null;
+
+        BG = c.BG;
     }
 
     /**

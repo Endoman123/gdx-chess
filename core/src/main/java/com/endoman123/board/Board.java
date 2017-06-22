@@ -23,7 +23,8 @@ import com.endoman123.util.Assets;
 public class Board extends InputAdapter{
     private final Application APP;
     private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
-    private final Array<Cell> CELLS, POSSIBLE_MOVES;
+    private final Array<Cell> POSSIBLE_MOVES;
+    private final Cell[][] BOARD;
     private Cell selected, destination;
     private float x, y, width, height;
     private final float PIECE_SCALE = 0.15f;
@@ -40,8 +41,8 @@ public class Board extends InputAdapter{
         NUM_FILES = f;
         NUM_RANKS = r;
 
-        CELLS = new Array<Cell>(Cell.class);
         POSSIBLE_MOVES = new Array<Cell>(Cell.class);
+        BOARD = new Cell[NUM_RANKS][NUM_FILES];
 
         // Initialize board
         int size = NUM_FILES * NUM_RANKS;
@@ -49,7 +50,7 @@ public class Board extends InputAdapter{
             int rank = i / NUM_FILES;
             int file = i % NUM_FILES;
 
-            CELLS.add(new Cell(file, rank));
+            BOARD[rank][file] = new Cell(file, rank);
         }
 
         APP = (Application) Gdx.app.getApplicationListener();
@@ -71,9 +72,7 @@ public class Board extends InputAdapter{
         if (f >= NUM_FILES || r >= NUM_RANKS || f < 0 || r < 0) // If out of range
             return null;
 
-        int index = r * NUM_FILES + f;
-
-        return CELLS.get(index);
+        return BOARD[r][f];
     }
 
     /**
@@ -82,10 +81,16 @@ public class Board extends InputAdapter{
      * @return the cell containing p, or null if none of them have it.
      */
     public Cell getCellContaining(Piece p) {
-        for (Cell c : CELLS) {
+        int size = NUM_FILES * NUM_RANKS;
+        for (int i = 0; i < size; i++) {
+            int rank = i / NUM_FILES;
+            int file = i % NUM_FILES;
+            Cell c = BOARD[rank][file];
+
             if (c.getPiece() == p)
                 return c;
         }
+
         return null;
     }
 
@@ -151,12 +156,14 @@ public class Board extends InputAdapter{
         Array<Cell> possibleMoves = new Array<Cell>();
         curKing.setCheck(false);
 
-        for (Cell c : CELLS) {
+        for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
+            Cell c = BOARD[i / NUM_FILES][i % NUM_FILES];
+
             possibleMoves.clear();
             if (c.getPiece() == null || c.getPiece().getTeam() == t)
                 continue;
 
-            possibleMoves.addAll(c.getPiece().getMoves(this, c.FILE, c.RANK));
+            possibleMoves.addAll(c.getPiece().getMoves(BOARD, c.FILE, c.RANK));
 
             if (possibleMoves.contains(curCell, true)) {
                 curKing.setCheck(true);
@@ -172,33 +179,35 @@ public class Board extends InputAdapter{
         camera.update();
         b.setProjectionMatrix(camera.combined);
         b.begin();
-        for (int i = 0; i < CELLS.size; i++) {
-            Cell cell = CELLS.get(i);
-            float xPos = x + tileWidth * (i % NUM_FILES);
-            float yPos = y + tileHeight * (i / NUM_FILES);
-            boolean containsPiece = cell.getPiece() != null;
-            boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).getCheck();
+        for (int rank = 0; rank < NUM_RANKS; rank++) {
+            for (int file = 0; file < NUM_FILES; file++) {
+                Cell cell = BOARD[rank][file];
+                float xPos = x + tileWidth * file;
+                float yPos = y + tileHeight * rank;
+                boolean containsPiece = cell.getPiece() != null;
+                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).getCheck();
 
-            cell.draw(b, x, y, tileWidth, tileHeight);
+                cell.draw(b, x, y, tileWidth, tileHeight);
 
-            if (cell == selected)
-                b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
-            else if (POSSIBLE_MOVES.contains(cell, true)) {
-                if (cell.getPiece() != null)
-                    b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                else
-                    b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
-            } else if (inCheck)
-                b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
+                if (cell == selected)
+                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
+                else if (POSSIBLE_MOVES.contains(cell, true)) {
+                    if (cell.getPiece() != null)
+                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    else
+                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
+                } else if (inCheck)
+                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
 
-            if (cell.getPiece() != null) {
-                Sprite s = cell.getPiece().getSprite();
-                float halfWidth = tileWidth / 2f;
-                float halfHeight = tileHeight / 2f;
+                if (cell.getPiece() != null) {
+                    Sprite s = cell.getPiece().getSprite();
+                    float halfWidth = tileWidth / 2f;
+                    float halfHeight = tileHeight / 2f;
 
-                s.setScale(PIECE_SCALE);
-                s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
-                s.draw(b);
+                    s.setScale(PIECE_SCALE);
+                    s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
+                    s.draw(b);
+                }
             }
         }
         b.end();
@@ -213,37 +222,38 @@ public class Board extends InputAdapter{
 
     public void reset() {
         // Clear the table
-        for (Cell c : CELLS)
-            c.setPiece(null);
+        for (Cell[] arr : BOARD)
+            for (Cell c : arr)
+                c.setPiece(null);
 
         // Initialize pieces
         for (int i = 0; i < NUM_FILES; i++) {
-            CELLS.get(8 + i).setPiece(new Pawn(Team.WHITE));
-            CELLS.get(48 + i).setPiece(new Pawn(Team.BLACK));
+            BOARD[1][i].setPiece(new Pawn(Team.WHITE));
+            BOARD[6][i].setPiece(new Pawn(Team.BLACK));
 
             switch(i) {
                 case 0:
                 case 7:
-                    CELLS.get(i).setPiece(new Rook(Team.WHITE));
-                    CELLS.get(56 + i).setPiece(new Rook(Team.BLACK));
+                    BOARD[0][i].setPiece(new Rook(Team.WHITE));
+                    BOARD[7][i].setPiece(new Rook(Team.BLACK));
                     break;
                 case 1:
                 case 6:
-                    CELLS.get(i).setPiece(new Knight(Team.WHITE));
-                    CELLS.get(56 + i).setPiece(new Knight(Team.BLACK));
+                    BOARD[0][i].setPiece(new Knight(Team.WHITE));
+                    BOARD[7][i].setPiece(new Knight(Team.BLACK));
                     break;
                 case 2:
                 case 5:
-                    CELLS.get(i).setPiece(new Bishop(Team.WHITE));
-                    CELLS.get(56 + i).setPiece(new Bishop(Team.BLACK));
+                    BOARD[0][i].setPiece(new Bishop(Team.WHITE));
+                    BOARD[7][i].setPiece(new Bishop(Team.BLACK));
                     break;
                 case 3:
-                    CELLS.get(i).setPiece(new Queen(Team.WHITE));
-                    CELLS.get(56 + i).setPiece(new Queen(Team.BLACK));
+                    BOARD[0][i].setPiece(new Queen(Team.WHITE));
+                    BOARD[7][i].setPiece(new Queen(Team.BLACK));
                     break;
                 case 4:
-                    CELLS.get(i).setPiece(WHITE_KING);
-                    CELLS.get(56 + i).setPiece(BLACK_KING);
+                    BOARD[0][i].setPiece(WHITE_KING);
+                    BOARD[7][i].setPiece(BLACK_KING);
                     break;
             }
         }
@@ -258,17 +268,88 @@ public class Board extends InputAdapter{
     /**
      * Filters the current moveset for unplayable moves due to the current state of the game.
      * @param possibleMoves the list of cells containing the current moveset
+     * @param c             the piece's starting cell
      * @param t             the current team playing
      * @return the filtered list
      */
-    public Array<Cell> filterMoves(Array<Cell> possibleMoves, Team t) {
-        for (Cell c : possibleMoves) {
+    public Array<Cell> filterMoves(Array<Cell> possibleMoves, Cell c, Team t) {
+        int i = 0;
+        while (i < possibleMoves.size) {
+            boolean remove = false;
+            Cell m = possibleMoves.get(i);
             // Should not be allowed to take opposing king
             if (c.getPiece() != null && !c.getPiece().getTeam().equals(t) && c.getPiece() instanceof King)
-                possibleMoves.removeValue(c, true);
+                remove = true;
+
+            // Illegal moves should (obviously) not be made
+            if (isIllegal(c, m, curTeam))
+                remove = true;
+
+            if (remove)
+                possibleMoves.removeValue(m, true);
+            else
+                i++;
         }
 
         return possibleMoves;
+    }
+
+    /**
+     * Brute forces a move check by playing the move out and checking if it is a legal move to make
+     * i.e.: it does not put or leave the king in check
+     *
+     * @param src the starting cell
+     * @param dst the ending cell
+     * @return whether or not the move to be made is legal
+     */
+    public boolean isIllegal(Cell src, Cell dst, Team t) {
+        Array<Cell> possibleMoves = new Array<Cell>();
+        Cell[][] boardCopy = new Cell[NUM_RANKS][NUM_FILES];
+        Cell kingCell = getCellContaining(getKing(t));
+        Cell srcCopy;
+        Cell dstCopy;
+        Cell kingCopy;
+
+        // Clone board
+        try {
+            for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
+                int file = i % NUM_FILES;
+                int rank = i / NUM_FILES;
+
+                boardCopy[rank][file] = new Cell(BOARD[rank][file]);
+            }
+
+            srcCopy = boardCopy[src.RANK][src.FILE];
+            dstCopy = boardCopy[dst.RANK][dst.FILE];
+            kingCopy = boardCopy[kingCell.RANK][kingCell.FILE];
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // Do pseudo-move
+        Piece p1 = srcCopy.getPiece();
+
+        srcCopy.setPiece(null);
+        dstCopy.setPiece(p1);
+
+        // Check if the move leaves the king in check
+        for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
+            Cell c = boardCopy[i / NUM_FILES][i % NUM_FILES];
+
+            possibleMoves.clear();
+            if (c.getPiece() == null || c.getPiece().getTeam() == t)
+                continue;
+
+            possibleMoves.addAll(c.getPiece().getMoves(boardCopy, c.FILE, c.RANK));
+
+            if (possibleMoves.contains(kingCopy, true)) {
+                System.out.println(dst + " leaves king in check!");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -282,18 +363,18 @@ public class Board extends InputAdapter{
         boolean validY = mouseSelected.y >= 0 && mouseSelected.y < NUM_RANKS;
 
         if (validX && validY) {
-            Cell cell = getCellAt((int)mouseSelected.x, (int)mouseSelected.y);
+            Cell cell = BOARD[(int)mouseSelected.y][(int)mouseSelected.x];
 
             if (selected != null && POSSIBLE_MOVES.contains(cell, true)) {
                 destination = cell;
             } else if (cell == selected || cell.getPiece() == null) {
                 selected = null;
                 POSSIBLE_MOVES.clear();
-            } else if (cell.getPiece() != null && cell.getPiece().getTeam().equals(curTeam)) {
+            } else if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
                 selected = cell;
                 POSSIBLE_MOVES.clear();
-                POSSIBLE_MOVES.addAll(selected.getPiece().getMoves(this, selected.FILE, selected.RANK));
-                filterMoves(POSSIBLE_MOVES, curTeam);
+                POSSIBLE_MOVES.addAll(selected.getPiece().getMoves(BOARD, selected.FILE, selected.RANK));
+                filterMoves(POSSIBLE_MOVES, selected, curTeam);
             }
         } else {
             selected = null;
