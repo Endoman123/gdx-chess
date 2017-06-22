@@ -17,6 +17,7 @@ import com.endoman123.util.Assets;
 
 /**
  * Container of {@link Cell}s with methods to update the state of the board.
+ *
  * @author Jared Tulayan
  */
 public class Board extends InputAdapter {
