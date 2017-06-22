@@ -160,7 +160,7 @@ public class Queen extends Piece {
                     Cell c = board.getCellAt(left, down);
 
                     if (c.getPiece() != null) {
-                        endUL = true;
+                        endDL = true;
                         if (c.getPiece().getTeam() != getTeam())
                             POSSIBLE_MOVES.add(c);
                     } else
