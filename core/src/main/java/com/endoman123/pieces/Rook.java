@@ -13,10 +13,7 @@ public class Rook extends Piece {
         super('R', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
-        if (t.equals(Team.WHITE))
-            setSprite(a.createSprite("rook_white"));
-        else
-            setSprite(a.createSprite("rook_black"));
+        setSprite(a.createSprite(t.getPath() + "rook"));
     }
 
     @Override

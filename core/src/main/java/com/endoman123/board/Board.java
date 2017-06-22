@@ -24,13 +24,14 @@ public class Board extends InputAdapter{
     private final Application APP;
 
     private float x, y, width, height;
-    private final float PIECE_SCALE = 0.15f;
+    private final float PIECE_SCALE = 0.5f;
     public final int NUM_FILES, NUM_RANKS;
     private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
 
     private final Array<Cell> POSSIBLE_MOVES;
     private final Cell[][] BOARD;
-    private final King WHITE_KING, BLACK_KING;
+    private Team teamA, teamB;
+    private King kingA, kingB;
     private Cell selected, destination;
 
     private int curTurn = 1;
@@ -76,10 +77,7 @@ public class Board extends InputAdapter{
         ATTACK_TILE = a.findRegion("attack");
         CHECK_TILE = a.findRegion("check");
 
-        WHITE_KING = new King(Team.WHITE);
-        BLACK_KING = new King(Team.BLACK);
-
-        reset();
+        reset(Team.LIGHT_GRAY, Team.DARK_GRAY);
     }
 
     /**
@@ -107,10 +105,13 @@ public class Board extends InputAdapter{
      * @return the white king or black king, depending on the team
      */
     public King getKing(Team t) {
-        if (t == Team.WHITE)
-            return WHITE_KING;
+        if (t != teamA && t != teamB)
+            throw new IllegalArgumentException("t must be a playing team color");
+
+        if (t == teamA)
+            return kingA;
         else
-            return BLACK_KING;
+            return kingB;
     }
 
     /**
@@ -129,19 +130,19 @@ public class Board extends InputAdapter{
             destination.setPiece(p1);
 
             // Flip turns
-            if (curTeam == Team.WHITE)
-                curTeam = Team.BLACK;
+            if (curTeam == teamA)
+                curTeam = teamB;
             else
-                curTeam = Team.WHITE;
+                curTeam = teamA;
 
             // Check if cur king is in check
-            King curKing;
+            King curKing = getKing(curTeam);
             updateCheck(curTeam);
 
-            curKing = getKing(curTeam);
+            boolean checkmate = false;
 
             // Notate
-            if (curTeam == Team.BLACK)
+            if (curTeam == teamB)
                 LOG_BUILDER.append(curTurn).append(". ");
 
             LOG_BUILDER.append(p1);
@@ -154,11 +155,22 @@ public class Board extends InputAdapter{
 
             LOG_BUILDER.append(destination);
 
-            if (curKing.isInCheck())
-                LOG_BUILDER.append(AlgebraicNotation.CHECK);
+            if (curKing.isInCheck()) {
+                checkmate = isCheckmate(curTeam);
+                if (checkmate)
+                    LOG_BUILDER.append(AlgebraicNotation.CHECKMATE);
+                else
+                    LOG_BUILDER.append(AlgebraicNotation.CHECK);
+            }
 
-            if (curTeam == Team.WHITE) {
+            if (curTeam == teamA || checkmate) {
                 System.out.println(LOG_BUILDER);
+                if (checkmate) {
+                    if (curTeam == teamA) // Team B won
+                        System.out.println(AlgebraicNotation.WIN_B);
+                    else // Team A won
+                        System.out.println(AlgebraicNotation.WIN_A);
+                }
                 LOG_BUILDER.delete(0, LOG_BUILDER.length());
             } else
                 LOG_BUILDER.append(" ");
@@ -198,15 +210,30 @@ public class Board extends InputAdapter{
     }
 
     /**
-     * Gets whether or not the current team playing is in checkmate.
+     * Gets whether or not the specified is in checkmate.
      *
+     * @param t the team to check checkmate for
      * @return if the current team playing is in checkmate
      */
-    public boolean isCheckmate() {
-        King curKing = getKing(curTeam);
+    public boolean isCheckmate(Team t) {
+        King curKing = getKing(t);
+        Array<Cell> moveCache = new Array<Cell>();
 
         if (!curKing.isInCheck()) // If the king is not in check, it's hardly checkmate.
             return false;
+
+        for (Cell[] rank : BOARD) {
+            for (Cell cell : rank) {
+                if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
+                    moveCache.clear();
+                    moveCache.addAll(cell.getPiece().getMoves(BOARD, cell.FILE, cell.RANK));
+                    filterMoves(moveCache, cell, t);
+
+                    if (moveCache.size > 0)
+                        return false;
+                }
+            }
+        }
 
         return true;
     }
@@ -349,7 +376,16 @@ public class Board extends InputAdapter{
     /**
      * Resets the game
      */
-    public void reset() {
+    public void reset(Team a, Team b) {
+        if (a == b)
+            throw new IllegalArgumentException("a cannot equal b");
+
+        teamA = a;
+        teamB = b;
+
+        kingA = new King(teamA);
+        kingB = new King(teamB);
+
         // Clear the table
         for (Cell[] arr : BOARD)
             for (Cell c : arr)
@@ -357,32 +393,32 @@ public class Board extends InputAdapter{
 
         // Initialize pieces
         for (int i = 0; i < NUM_FILES; i++) {
-            BOARD[1][i].setPiece(new Pawn(Team.WHITE));
-            BOARD[6][i].setPiece(new Pawn(Team.BLACK));
+            BOARD[1][i].setPiece(new Pawn(teamA, 1));
+            BOARD[6][i].setPiece(new Pawn(teamB, -1));
 
             switch(i) {
                 case 0:
                 case 7:
-                    BOARD[0][i].setPiece(new Rook(Team.WHITE));
-                    BOARD[7][i].setPiece(new Rook(Team.BLACK));
+                    BOARD[0][i].setPiece(new Rook(teamA));
+                    BOARD[7][i].setPiece(new Rook(teamB));
                     break;
                 case 1:
                 case 6:
-                    BOARD[0][i].setPiece(new Knight(Team.WHITE));
-                    BOARD[7][i].setPiece(new Knight(Team.BLACK));
+                    BOARD[0][i].setPiece(new Knight(teamA));
+                    BOARD[7][i].setPiece(new Knight(teamB));
                     break;
                 case 2:
                 case 5:
-                    BOARD[0][i].setPiece(new Bishop(Team.WHITE));
-                    BOARD[7][i].setPiece(new Bishop(Team.BLACK));
+                    BOARD[0][i].setPiece(new Bishop(teamA));
+                    BOARD[7][i].setPiece(new Bishop(teamB));
                     break;
                 case 3:
-                    BOARD[0][i].setPiece(new Queen(Team.WHITE));
-                    BOARD[7][i].setPiece(new Queen(Team.BLACK));
+                    BOARD[0][i].setPiece(new Queen(teamA));
+                    BOARD[7][i].setPiece(new Queen(teamB));
                     break;
                 case 4:
-                    BOARD[0][i].setPiece(WHITE_KING);
-                    BOARD[7][i].setPiece(BLACK_KING);
+                    BOARD[0][i].setPiece(kingA);
+                    BOARD[7][i].setPiece(kingB);
                     break;
             }
         }
@@ -391,7 +427,7 @@ public class Board extends InputAdapter{
         selected = null;
         destination = null;
 
-        curTeam = Team.WHITE;
+        curTeam = teamA;
     }
 
     @Override

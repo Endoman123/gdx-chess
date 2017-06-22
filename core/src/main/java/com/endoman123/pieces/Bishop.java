@@ -13,10 +13,7 @@ public class Bishop extends Piece {
         super('B', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
-        if (t.equals(Team.WHITE))
-            setSprite(a.createSprite("bishop_white"));
-        else
-            setSprite(a.createSprite("bishop_black"));
+        setSprite(a.createSprite(t.getPath() + "bishop"));
     }
 
     @Override

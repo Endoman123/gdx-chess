@@ -13,10 +13,7 @@ public class Knight extends Piece {
         super('N', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
-        if (t.equals(Team.WHITE))
-            setSprite(a.createSprite("knight_white"));
-        else
-            setSprite(a.createSprite("knight_black"));
+        setSprite(a.createSprite(t.getPath() + "knight"));
     }
 
     @Override
@@ -32,7 +29,7 @@ public class Knight extends Piece {
         boolean validDown = down >= 0;
         boolean validDown2 = down - 1 >= 0;
         boolean validLeft = left >= 0;
-        boolean validLeft2 = left - 1 > 0;
+        boolean validLeft2 = left - 1 >= 0;
         boolean validRight = right < board[0].length;
         boolean validRight2 = right + 1 < board[0].length;
 

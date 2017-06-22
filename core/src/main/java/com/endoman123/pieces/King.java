@@ -15,10 +15,7 @@ public class King extends Piece {
         super('K', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
-        if (t.equals(Team.WHITE))
-            setSprite(a.createSprite("king_white"));
-        else
-            setSprite(a.createSprite("king_black"));
+        setSprite(a.createSprite(t.getPath() + "king"));
     }
 
     public void setCheck(boolean check) {

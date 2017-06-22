@@ -3,87 +3,562 @@ pieces.png
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
-queen_black
-  rotate: false
-  xy: 1, 529
-  size: 286, 262
-  orig: 286, 262
-  offset: 0, 0
-  index: -1
-queen_white
-  rotate: false
-  xy: 1, 265
-  size: 286, 262
-  orig: 286, 262
-  offset: 0, 0
-  index: -1
-king_black
-  rotate: false
-  xy: 289, 529
-  size: 259, 262
-  orig: 259, 262
-  offset: 0, 0
-  index: -1
-king_white
+black/bishop
   rotate: false
   xy: 1, 1
-  size: 259, 262
-  orig: 259, 262
+  size: 85, 91
+  orig: 85, 91
   offset: 0, 0
   index: -1
-bishop_black
+black/queen
   rotate: false
-  xy: 289, 268
-  size: 257, 259
-  orig: 257, 259
+  xy: 88, 8
+  size: 91, 84
+  orig: 91, 84
   offset: 0, 0
   index: -1
-bishop_white
+black/king
   rotate: false
-  xy: 550, 532
-  size: 257, 259
-  orig: 257, 259
+  xy: 181, 6
+  size: 79, 86
+  orig: 79, 86
   offset: 0, 0
   index: -1
-rook_black
+black/knight
   rotate: false
-  xy: 809, 557
-  size: 212, 234
-  orig: 212, 234
+  xy: 262, 15
+  size: 79, 77
+  orig: 79, 77
   offset: 0, 0
   index: -1
-knight_black
+black/rook
   rotate: false
-  xy: 262, 14
-  size: 250, 249
-  orig: 250, 249
+  xy: 343, 16
+  size: 66, 76
+  orig: 66, 76
   offset: 0, 0
   index: -1
-knight_white
+black/pawn
   rotate: false
-  xy: 514, 17
-  size: 250, 249
-  orig: 250, 249
+  xy: 411, 15
+  size: 57, 77
+  orig: 57, 77
   offset: 0, 0
   index: -1
-pawn_black
+
+pieces2.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+blue/queen
   rotate: false
-  xy: 548, 289
-  size: 183, 238
-  orig: 183, 238
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
   offset: 0, 0
   index: -1
-pawn_white
+blue/bishop
   rotate: false
-  xy: 733, 292
-  size: 183, 238
-  orig: 183, 238
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
   offset: 0, 0
   index: -1
-rook_white
+blue/king
   rotate: false
-  xy: 766, 56
-  size: 212, 234
-  orig: 212, 234
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+blue/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+blue/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+blue/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces3.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+cyan/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+cyan/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+cyan/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+cyan/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+cyan/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+cyan/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces4.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+dark_gray/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+dark_gray/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+dark_gray/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+dark_gray/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+dark_gray/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+dark_gray/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces5.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+green/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+green/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+green/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+green/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+green/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+green/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces6.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+light_gray/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+light_gray/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+light_gray/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+light_gray/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+light_gray/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+light_gray/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces7.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+orange/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+orange/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+orange/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+orange/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+orange/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+orange/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces8.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+pink/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+pink/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+pink/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+pink/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+pink/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+pink/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces9.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+purple/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+purple/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+purple/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+purple/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+purple/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+purple/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces10.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+red/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+red/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+red/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+red/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+red/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+red/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces11.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+white/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+white/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+white/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+white/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+white/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+white/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
+  offset: 0, 0
+  index: -1
+
+pieces12.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+yellow/queen
+  rotate: false
+  xy: 1, 7
+  size: 91, 85
+  orig: 91, 85
+  offset: 0, 0
+  index: -1
+yellow/bishop
+  rotate: false
+  xy: 94, 1
+  size: 84, 91
+  orig: 84, 91
+  offset: 0, 0
+  index: -1
+yellow/king
+  rotate: false
+  xy: 180, 6
+  size: 79, 86
+  orig: 79, 86
+  offset: 0, 0
+  index: -1
+yellow/knight
+  rotate: false
+  xy: 261, 14
+  size: 78, 78
+  orig: 78, 78
+  offset: 0, 0
+  index: -1
+yellow/rook
+  rotate: false
+  xy: 341, 15
+  size: 66, 77
+  orig: 66, 77
+  offset: 0, 0
+  index: -1
+yellow/pawn
+  rotate: false
+  xy: 409, 15
+  size: 56, 77
+  orig: 56, 77
   offset: 0, 0
   index: -1

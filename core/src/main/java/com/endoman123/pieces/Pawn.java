@@ -9,25 +9,28 @@ import com.endoman123.util.Assets;
  * @author Jared Tulayan
  */
 public class Pawn extends Piece {
-    public Pawn(Team t) {
+    final int DIRECTION;
+    public Pawn(Team t, int d) {
         super(Character.MIN_VALUE, t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
-        if (t.equals(Team.WHITE))
-            setSprite(a.createSprite("pawn_white"));
+        setSprite(a.createSprite(t.getPath() + "pawn"));
+
+        if (d == 0)
+            DIRECTION = 1;
         else
-            setSprite(a.createSprite("pawn_black"));
+            DIRECTION = (int)Math.signum(d);
     }
 
     @Override
     public Array<Cell> getMoves(Cell[][] board, int file, int rank) {
-        int dir = getTeam().getDirection(), fwd = rank + dir, fwd2 = rank + 2 * dir, left = file - 1, right = file + 1;
+        int fwd = rank + DIRECTION, fwd2 = rank + 2 * DIRECTION, left = file - 1, right = file + 1;
         boolean hasMoved;
 
         // You should always clear the moves list
         POSSIBLE_MOVES.clear();
 
-        if (getTeam() == Team.WHITE)
+        if (DIRECTION == 1)
             hasMoved = rank != 1;
         else
             hasMoved = rank != 6;

@@ -11,7 +11,9 @@ public class AlgebraicNotation {
         CAPTURE = "x",
         CHECK = "+",
         CHECKMATE = "#",
-        MOVE = " ";
+        WIN_A = "1-0",
+        WIN_B = "0-1",
+        DRAW = "\u00BD-\u00BD";
 
     /**
      * Notates the specified location in AN.
