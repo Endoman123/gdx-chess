@@ -208,12 +208,9 @@ public class Board extends InputAdapter {
      */
     public Array<Cell> filterMoves(Array<Cell> possibleMoves, Team t) {
         for (Cell c : possibleMoves) {
-            if (c.getPiece() == null)
-                continue;
-
-            if (!c.getPiece().getTeam().equals(t)) {
-
-            }
+            // Should not be allowed to take opposing king
+            if (c.getPiece() != null && !c.getPiece().getTeam().equals(t) && c.getPiece() instanceof King)
+                possibleMoves.removeValue(c, true);
         }
 
         return possibleMoves;
