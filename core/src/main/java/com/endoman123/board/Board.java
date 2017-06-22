@@ -125,9 +125,36 @@ public class Board extends InputAdapter{
             Piece p1 = selected.getPiece();
             Piece p2 = destination.getPiece();
 
+            clearHistory(curTeam);
+
+            // Booleans for castling and "passing"
+            boolean castle = p1 instanceof King && Math.abs(destination.FILE - selected.FILE) == 2,
+                    enPassant = p1 instanceof Pawn && destination.FILE != selected.FILE && p2 == null;
+
             // Move piece
+            if (castle) {
+                int rank = selected.RANK;
+                int rookDirection = (int)Math.signum(destination.FILE - selected.FILE);
+                Piece rook;
+                Cell rookTile;
+
+                if (destination.FILE - selected.FILE == -2) // queenside castle
+                    rookTile = BOARD[rank][0];
+                else
+                    rookTile = BOARD[rank][7];
+
+                rook = rookTile.getPiece();
+                rookTile.setPiece(null);
+                BOARD[rank][destination.FILE - rookDirection].setPiece(rook);
+                rook.toggleMoved();
+                castle = true;
+            } else if (enPassant) {
+
+            }
+
             selected.setPiece(null);
             destination.setPiece(p1);
+            p1.toggleMoved();
 
             // Flip turns
             if (curTeam == teamA)
@@ -145,15 +172,25 @@ public class Board extends InputAdapter{
             if (curTeam == teamB)
                 LOG_BUILDER.append(curTurn).append(". ");
 
-            LOG_BUILDER.append(p1);
-            if (p2 != null) {
-                if (p1 instanceof Pawn)
-                    LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
+            if (castle) {
+                if (destination.FILE - selected.FILE == -2) // Queenside
+                    LOG_BUILDER.append(AlgebraicNotation.CASTLE_QUEENSIDE);
+                else
+                    LOG_BUILDER.append(AlgebraicNotation.CASTLE_KINGSIDE);
+            } else {
+                LOG_BUILDER.append(p1);
+                if (p2 != null) {
+                    if (p1 instanceof Pawn)
+                        LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
 
-                LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
+                    LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
+                }
+
+                LOG_BUILDER.append(destination);
+
+                if (enPassant)
+                    LOG_BUILDER.append(AlgebraicNotation.EN_PASSANT);
             }
-
-            LOG_BUILDER.append(destination);
 
             if (curKing.isInCheck()) {
                 checkmate = isCheckmate(curTeam);
@@ -172,14 +209,28 @@ public class Board extends InputAdapter{
                         System.out.println(AlgebraicNotation.WIN_A);
                 }
                 LOG_BUILDER.delete(0, LOG_BUILDER.length());
+                curTurn++;
             } else
                 LOG_BUILDER.append(" ");
 
             // Set up for next phase
-            curTurn++;
             selected = null;
             destination = null;
             POSSIBLE_MOVES.clear();
+        }
+    }
+
+    /**
+     * Clears the last immediate move from all the pieces of the specified team
+     *
+     * @param t the team whose history should be cleared.
+     */
+    public void clearHistory(Team t) {
+        for (Cell[] rank : BOARD) {
+            for(Cell c : rank) {
+                if (c.getPiece() != null && c.getPiece().getTeam() == t)
+                    c.getPiece().setLastMove(null);
+            }
         }
     }
 
@@ -251,12 +302,19 @@ public class Board extends InputAdapter{
             boolean remove = false;
             Cell m = possibleMoves.get(i);
             // Should not be allowed to take opposing king
-            if (c.getPiece() != null && !c.getPiece().getTeam().equals(t) && c.getPiece() instanceof King)
+            if (!c.getPiece().getTeam().equals(t) && c.getPiece() instanceof King)
                 remove = true;
 
             // Illegal moves should (obviously) not be made
-            if (isIllegal(c, m, curTeam))
+            if (checkIllegalMove(c, m, curTeam))
                 remove = true;
+
+            // Illegal castling needs to be filtered
+            boolean isCastle = c.getPiece() instanceof King && m.RANK == c.RANK && Math.abs(m.FILE - c.FILE) == 2;
+            if (isCastle && checkIllegalCastle(c, m)) {
+                System.out.println(m + " is an illegal castle!");
+                remove = true;
+            }
 
             if (remove)
                 possibleMoves.removeValue(m, true);
@@ -275,7 +333,7 @@ public class Board extends InputAdapter{
      * @param dst the ending cell
      * @return whether or not the move to be made is legal
      */
-    public boolean isIllegal(Cell src, Cell dst, Team t) {
+    public boolean checkIllegalMove(Cell src, Cell dst, Team t) {
         Array<Cell> possibleMoves = new Array<Cell>();
         Cell[][] boardCopy = new Cell[NUM_RANKS][NUM_FILES];
         Cell kingCell = getCellContaining(getKing(t));
@@ -325,6 +383,20 @@ public class Board extends InputAdapter{
         }
 
         return false;
+    }
+
+    /**
+     * Checks if the current move is an illegal castle.
+     *
+     * @param src the {@code Cell} that the king is standing on
+     * @param dst the {@code Cell} that the king is castling to
+     * @return if the cell in between the King and the castle destination is a legal move on its own.
+     */
+    public boolean checkIllegalCastle(Cell src, Cell dst) {
+        int direction = (int)Math.signum(dst.FILE - src.FILE);
+        Team team = src.getPiece().getTeam();
+
+        return checkIllegalMove(src, BOARD[src.RANK][src.FILE + direction], team);
     }
 
     /**

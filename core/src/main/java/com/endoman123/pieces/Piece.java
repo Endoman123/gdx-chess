@@ -13,13 +13,34 @@ public abstract class Piece implements Cloneable {
     private Team team; // Team is based on index, might change to enum
     private Sprite sprite;
     private final Character ID;
+    private Cell lastMove;
     protected final Array<Cell> POSSIBLE_MOVES;
+    private boolean hasMoved = false;
 
     public Piece(Character id, Team t) {
         team = t;
         ID = id;
 
         POSSIBLE_MOVES = new Array<Cell>();
+    }
+
+    /**
+     * Toggle to set moved to true.
+     */
+    public void toggleMoved() {
+        hasMoved = true;
+    }
+
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+
+    public void setLastMove(Cell m) {
+        lastMove = m;
+    }
+
+    public Cell getLastMove() {
+        return lastMove;
     }
 
     public Team getTeam() {

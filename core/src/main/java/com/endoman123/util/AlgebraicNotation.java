@@ -11,6 +11,9 @@ public class AlgebraicNotation {
         CAPTURE = "x",
         CHECK = "+",
         CHECKMATE = "#",
+        EN_PASSANT = "e.p.",
+        CASTLE_KINGSIDE = "0-0",
+        CASTLE_QUEENSIDE = "0-0-0",
         WIN_A = "1-0",
         WIN_B = "0-1",
         DRAW = "\u00BD-\u00BD";

@@ -9,7 +9,8 @@ import com.endoman123.util.Assets;
  * @author Jared Tulayan
  */
 public class King extends Piece {
-    private boolean isInCheck;
+    private boolean inCheck;
+    private boolean hasMoved;
 
     public King(Team t) {
         super('K', t);
@@ -19,11 +20,22 @@ public class King extends Piece {
     }
 
     public void setCheck(boolean check) {
-        isInCheck = check;
+        inCheck = check;
+    }
+
+    /**
+     * Toggle to set moved to true.
+     */
+    public void toggleMoved() {
+        hasMoved = true;
+    }
+
+    public boolean hasMoved() {
+        return hasMoved;
     }
 
     public boolean isInCheck() {
-        return isInCheck;
+        return inCheck;
     }
 
     @Override
@@ -58,11 +70,29 @@ public class King extends Piece {
             possibleMoves.add(board[down][left]);
 
         for (Cell c : possibleMoves) {
-            boolean opposing = c != null && c.getPiece() != null && c.getPiece().getTeam() != getTeam();
-            boolean empty = c != null && c.getPiece() == null;
+            boolean opposing = c.getPiece() != null && c.getPiece().getTeam() != getTeam();
+            boolean empty = c.getPiece() == null;
 
             if (opposing || empty)
                 POSSIBLE_MOVES.add(c);
+        }
+
+        // Castling
+        if (!hasMoved && !inCheck) {
+            Cell castleLeft = board[rank][2];
+            Cell castleRight = board[rank][6];
+            Piece rookLeft = board[rank][0].getPiece();
+            Piece rookRight = board[rank][7].getPiece();
+
+            boolean leftSideEmpty = board[rank][1].getPiece() == null && castleLeft.getPiece() == null && board[0][3].getPiece() == null;
+            boolean rightSideEmpty = board[rank][6].getPiece() == null && castleRight.getPiece() == null;
+            boolean leftRookValid = rookLeft instanceof Rook && rookLeft.getTeam() == getTeam() && !((Rook)rookLeft).hasMoved();
+            boolean rightRookValid = rookRight instanceof Rook && rookRight.getTeam() == getTeam() && !((Rook)rookRight).hasMoved();
+
+            if (leftSideEmpty && leftRookValid)
+                POSSIBLE_MOVES.add(castleLeft);
+            if (rightSideEmpty && rightRookValid)
+                POSSIBLE_MOVES.add(castleRight);
         }
 
         return POSSIBLE_MOVES;

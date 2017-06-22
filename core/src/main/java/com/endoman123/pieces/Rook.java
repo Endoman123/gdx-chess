@@ -9,12 +9,14 @@ import com.endoman123.util.Assets;
  * @author Jared Tulayan
  */
 public class Rook extends Piece {
+    private boolean hasMoved;
     public Rook(Team t) {
         super('R', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
 
         setSprite(a.createSprite(t.getPath() + "rook"));
     }
+
 
     @Override
     public Array<Cell> getMoves(Cell[][] board, int file, int rank) {

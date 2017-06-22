@@ -9,7 +9,7 @@ import com.endoman123.util.Assets;
  * @author Jared Tulayan
  */
 public class Pawn extends Piece {
-    final int DIRECTION;
+    public final int DIRECTION;
     public Pawn(Team t, int d) {
         super(Character.MIN_VALUE, t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
@@ -45,16 +45,40 @@ public class Pawn extends Piece {
 
         if (left >= 0) {
             Cell attack = board[fwd][left];
+            Piece passantPiece = board[rank][left].getPiece();
 
-            if (attack.getPiece() != null && attack.getPiece().getTeam() != getTeam())
-            POSSIBLE_MOVES.add(attack);
+            boolean occupied =
+                    attack.getPiece() != null && attack.getPiece().getTeam() != getTeam();
+
+            boolean isOpposingPawn =
+                    passantPiece != null && passantPiece.getTeam() != getTeam() && passantPiece instanceof Pawn;
+
+            boolean validEnPassant =
+                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank - board.length) == 5;
+
+            if (occupied || validEnPassant)
+                POSSIBLE_MOVES.add(attack);
+            else
+                System.out.println(isOpposingPawn + " || " + validEnPassant);
         }
 
         if (right < board[0].length) {
             Cell attack = board[fwd][right];
+            Piece passantPiece = board[rank][right].getPiece();
 
-            if (attack.getPiece() != null && attack.getPiece().getTeam() != getTeam())
+            boolean occupied =
+                    attack.getPiece() != null && attack.getPiece().getTeam() != getTeam();
+
+            boolean isOpposingPawn =
+                    passantPiece != null && passantPiece.getTeam() != getTeam() && passantPiece instanceof Pawn;
+
+            boolean validEnPassant =
+                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank - board.length) == 5;
+
+            if (occupied || validEnPassant)
                 POSSIBLE_MOVES.add(attack);
+            else
+                System.out.println(isOpposingPawn + " || " + validEnPassant);
         }
 
         return POSSIBLE_MOVES;
