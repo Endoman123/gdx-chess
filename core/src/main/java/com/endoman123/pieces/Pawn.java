@@ -58,8 +58,6 @@ public class Pawn extends Piece {
 
             if (occupied || validEnPassant)
                 POSSIBLE_MOVES.add(attack);
-            else
-                System.out.println(isOpposingPawn + " || " + validEnPassant);
         }
 
         if (right < board[0].length) {

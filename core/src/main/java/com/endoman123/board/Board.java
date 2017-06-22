@@ -155,6 +155,7 @@ public class Board extends InputAdapter{
             selected.setPiece(null);
             destination.setPiece(p1);
             p1.toggleMoved();
+            p1.setLastMove(destination);
 
             // Flip turns
             if (curTeam == teamA)
