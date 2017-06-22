@@ -20,9 +20,9 @@ import com.endoman123.util.Assets;
  *
  * @author Jared Tulayan
  */
-public class Board extends InputAdapter {
+public class Board extends InputAdapter{
     private final Application APP;
-    private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE;
+    private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
     private final Array<Cell> CELLS, POSSIBLE_MOVES;
     private Cell selected, destination;
     private float x, y, width, height;
@@ -59,6 +59,7 @@ public class Board extends InputAdapter {
         SELECT_TILE = a.findRegion("selected");
         MOVE_TILE = a.findRegion("move");
         ATTACK_TILE = a.findRegion("attack");
+        CHECK_TILE = a.findRegion("check");
 
         WHITE_KING = new King(Team.WHITE);
         BLACK_KING = new King(Team.BLACK);
@@ -75,9 +76,23 @@ public class Board extends InputAdapter {
         return CELLS.get(index);
     }
 
+    /**
+     * Gets the cell containing the specified piece
+     * @param p the piece to search for in all the cells
+     * @return the cell containing p, or null if none of them have it.
+     */
+    public Cell getCellContaining(Piece p) {
+        for (Cell c : CELLS) {
+            if (c.getPiece() == p)
+                return c;
+        }
+        return null;
+    }
+
     public void update(float delta) {
         // Do a move when the chance arises
         if (selected != null && destination != null) {
+            StringBuilder notation = new StringBuilder();
             Piece p1 = selected.getPiece();
             Piece p2 = destination.getPiece();
 
@@ -85,30 +100,67 @@ public class Board extends InputAdapter {
             selected.setPiece(null);
             destination.setPiece(p1);
 
-            // Notate
-            System.out.print(curTurn + ". " + p1);
-
-            if (p2 == null)
-                System.out.print(selected + AlgebraicNotation.MOVE + p1);
-            else {
-                if (p1.toString().isEmpty())
-                    System.out.print(AlgebraicNotation.convertToBase26(selected.FILE + 1));
-                System.out.print(AlgebraicNotation.CAPTURE);
-            }
-
-            System.out.println(destination);
-
             // Flip turns
             if (curTeam == Team.WHITE)
                 curTeam = Team.BLACK;
             else
                 curTeam = Team.WHITE;
 
+            // Check if cur king is in check
+            King curKing;
+            updateCheck(curTeam);
+
+            curKing = getKing(curTeam);
+
+            // Notate
+            notation.append(curTurn);
+            notation.append(". ");
+            notation.append(p1);
+
+            if (p2 == null) {
+                notation.append(selected);
+                notation.append(AlgebraicNotation.MOVE);
+                notation.append(p1);
+            } else {
+                if (p1.toString().isEmpty())
+                    notation.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
+                notation.append(AlgebraicNotation.CAPTURE);
+            }
+            notation.append(destination);
+            if (curKing.getCheck())
+                notation.append(AlgebraicNotation.CHECK);
+
+            System.out.println(notation);
+
             // Set up for next phase
             curTurn++;
             selected = null;
             destination = null;
             POSSIBLE_MOVES.clear();
+        }
+    }
+
+    /**
+     * Checks if the specified team's king is in check, then updates the king if it is.
+     *
+     * @param t the team the king belongs to
+     */
+    public void updateCheck(Team t) {
+        King curKing = getKing(t);
+        Cell curCell = getCellContaining(curKing);
+        Array<Cell> possibleMoves = new Array<Cell>();
+        curKing.setCheck(false);
+
+        for (Cell c : CELLS) {
+            possibleMoves.clear();
+            if (c.getPiece() == null || c.getPiece().getTeam() == t)
+                continue;
+
+            possibleMoves.addAll(c.getPiece().getMoves(this, c.FILE, c.RANK));
+
+            if (possibleMoves.contains(curCell, true)) {
+                curKing.setCheck(true);
+            }
         }
     }
 
@@ -124,6 +176,8 @@ public class Board extends InputAdapter {
             Cell cell = CELLS.get(i);
             float xPos = x + tileWidth * (i % NUM_FILES);
             float yPos = y + tileHeight * (i / NUM_FILES);
+            boolean containsPiece = cell.getPiece() != null;
+            boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).getCheck();
 
             cell.draw(b, x, y, tileWidth, tileHeight);
 
@@ -134,7 +188,8 @@ public class Board extends InputAdapter {
                     b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
                 else
                     b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
-            }
+            } else if (inCheck)
+                b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
 
             if (cell.getPiece() != null) {
                 Sprite s = cell.getPiece().getSprite();

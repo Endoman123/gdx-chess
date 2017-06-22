@@ -10,6 +10,8 @@ import com.endoman123.util.Assets;
  * @author Jared Tulayan
  */
 public class King extends Piece {
+    private boolean isInCheck;
+
     public King(Team t) {
         super('K', t);
         TextureAtlas a = Assets.MANAGER.get(Assets.GameObjects.PIECES_ATLAS);
@@ -18,6 +20,14 @@ public class King extends Piece {
             setSprite(a.createSprite("king_white"));
         else
             setSprite(a.createSprite("king_black"));
+    }
+
+    public void setCheck(boolean check) {
+        isInCheck = check;
+    }
+
+    public boolean getCheck() {
+        return isInCheck;
     }
 
     @Override

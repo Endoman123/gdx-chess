@@ -10,7 +10,7 @@ public class AlgebraicNotation {
     public static final String
         CAPTURE = "x",
         CHECK = "+",
-        CHECKMATE = "++",
+        CHECKMATE = "#",
         MOVE = " ";
 
     /**
