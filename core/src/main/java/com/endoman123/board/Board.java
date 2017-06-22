@@ -31,6 +31,7 @@ public class Board extends InputAdapter{
     public final int NUM_FILES, NUM_RANKS;
     private final King WHITE_KING, BLACK_KING;
     private int curTurn = 1;
+    private final StringBuilder LOG_BUILDER;
     private Team curTeam;
 
     public Board(float x, float y, float w, float h, int f, int r) {
@@ -43,6 +44,7 @@ public class Board extends InputAdapter{
 
         POSSIBLE_MOVES = new Array<Cell>(Cell.class);
         BOARD = new Cell[NUM_RANKS][NUM_FILES];
+        LOG_BUILDER = new StringBuilder();
 
         // Initialize board
         int size = NUM_FILES * NUM_RANKS;
@@ -68,13 +70,6 @@ public class Board extends InputAdapter{
         reset();
     }
 
-    public Cell getCellAt(int f, int r) {
-        if (f >= NUM_FILES || r >= NUM_RANKS || f < 0 || r < 0) // If out of range
-            return null;
-
-        return BOARD[r][f];
-    }
-
     /**
      * Gets the cell containing the specified piece
      * @param p the piece to search for in all the cells
@@ -97,7 +92,6 @@ public class Board extends InputAdapter{
     public void update(float delta) {
         // Do a move when the chance arises
         if (selected != null && destination != null) {
-            StringBuilder notation = new StringBuilder();
             Piece p1 = selected.getPiece();
             Piece p2 = destination.getPiece();
 
@@ -118,24 +112,27 @@ public class Board extends InputAdapter{
             curKing = getKing(curTeam);
 
             // Notate
-            notation.append(curTurn);
-            notation.append(". ");
-            notation.append(p1);
+            if (curTeam == Team.BLACK)
+                LOG_BUILDER.append(curTurn).append(". ");
 
-            if (p2 == null) {
-                notation.append(selected);
-                notation.append(AlgebraicNotation.MOVE);
-                notation.append(p1);
-            } else {
-                if (p1.toString().isEmpty())
-                    notation.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
-                notation.append(AlgebraicNotation.CAPTURE);
+            LOG_BUILDER.append(p1);
+            if (p2 != null) {
+                if (p1 instanceof Pawn)
+                    LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
+
+                LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
             }
-            notation.append(destination);
-            if (curKing.getCheck())
-                notation.append(AlgebraicNotation.CHECK);
 
-            System.out.println(notation);
+            LOG_BUILDER.append(destination);
+
+            if (curKing.isInCheck())
+                LOG_BUILDER.append(AlgebraicNotation.CHECK);
+
+            if (curTeam == Team.WHITE) {
+                System.out.println(LOG_BUILDER);
+                LOG_BUILDER.delete(0, LOG_BUILDER.length());
+            } else
+                LOG_BUILDER.append(" ");
 
             // Set up for next phase
             curTurn++;
@@ -185,7 +182,7 @@ public class Board extends InputAdapter{
                 float xPos = x + tileWidth * file;
                 float yPos = y + tileHeight * rank;
                 boolean containsPiece = cell.getPiece() != null;
-                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).getCheck();
+                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
 
                 cell.draw(b, x, y, tileWidth, tileHeight);
 
@@ -321,7 +318,11 @@ public class Board extends InputAdapter{
 
             srcCopy = boardCopy[src.RANK][src.FILE];
             dstCopy = boardCopy[dst.RANK][dst.FILE];
-            kingCopy = boardCopy[kingCell.RANK][kingCell.FILE];
+
+            if (src.getPiece() instanceof King) // If the king is actually who is moving
+                kingCopy = dstCopy;
+            else
+                kingCopy = boardCopy[kingCell.RANK][kingCell.FILE];
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -343,10 +344,8 @@ public class Board extends InputAdapter{
 
             possibleMoves.addAll(c.getPiece().getMoves(boardCopy, c.FILE, c.RANK));
 
-            if (possibleMoves.contains(kingCopy, true)) {
-                System.out.println(dst + " leaves king in check!");
+            if (possibleMoves.contains(kingCopy, true))
                 return true;
-            }
         }
 
         return false;

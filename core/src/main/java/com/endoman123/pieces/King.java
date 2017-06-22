@@ -25,7 +25,7 @@ public class King extends Piece {
         isInCheck = check;
     }
 
-    public boolean getCheck() {
+    public boolean isInCheck() {
         return isInCheck;
     }
 
