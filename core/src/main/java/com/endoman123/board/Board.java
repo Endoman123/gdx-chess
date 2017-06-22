@@ -22,18 +22,30 @@ import com.endoman123.util.Assets;
  */
 public class Board extends InputAdapter{
     private final Application APP;
-    private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
-    private final Array<Cell> POSSIBLE_MOVES;
-    private final Cell[][] BOARD;
-    private Cell selected, destination;
+
     private float x, y, width, height;
     private final float PIECE_SCALE = 0.15f;
     public final int NUM_FILES, NUM_RANKS;
-    private final King WHITE_KING, BLACK_KING;
-    private int curTurn = 1;
-    private final StringBuilder LOG_BUILDER;
-    private Team curTeam;
+    private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
 
+    private final Array<Cell> POSSIBLE_MOVES;
+    private final Cell[][] BOARD;
+    private final King WHITE_KING, BLACK_KING;
+    private Cell selected, destination;
+
+    private int curTurn = 1;
+    private Team curTeam;
+    private final StringBuilder LOG_BUILDER;
+
+    /**
+     * Constructs a new {@link Board} at the specified location with the specified size and number of rows and columns
+     * @param x the x-coordinate for the bottom-left corner
+     * @param y the y-coordinate for the bottom-left corner
+     * @param w the width of the board
+     * @param h the height of the board
+     * @param f the number of files (columns)
+     * @param r the number of ranks (rows)
+     */
     public Board(float x, float y, float w, float h, int f, int r) {
         this.x = x;
         this.y = y;
@@ -89,6 +101,23 @@ public class Board extends InputAdapter{
         return null;
     }
 
+    /**
+     * Gets the king for the specified team
+     * @param t the team to get the king for
+     * @return the white king or black king, depending on the team
+     */
+    public King getKing(Team t) {
+        if (t == Team.WHITE)
+            return WHITE_KING;
+        else
+            return BLACK_KING;
+    }
+
+    /**
+     * Updates the state of the game
+     *
+     * @param delta the time passed in between updates.
+     */
     public void update(float delta) {
         // Do a move when the chance arises
         if (selected != null && destination != null) {
@@ -168,98 +197,18 @@ public class Board extends InputAdapter{
         }
     }
 
-    public void draw(Batch b) {
-        Camera camera = APP.getViewport().getCamera();
-        float tileWidth = width / NUM_FILES;
-        float tileHeight = height / NUM_RANKS;
+    /**
+     * Gets whether or not the current team playing is in checkmate.
+     *
+     * @return if the current team playing is in checkmate
+     */
+    public boolean isCheckmate() {
+        King curKing = getKing(curTeam);
 
-        camera.update();
-        b.setProjectionMatrix(camera.combined);
-        b.begin();
-        for (int rank = 0; rank < NUM_RANKS; rank++) {
-            for (int file = 0; file < NUM_FILES; file++) {
-                Cell cell = BOARD[rank][file];
-                float xPos = x + tileWidth * file;
-                float yPos = y + tileHeight * rank;
-                boolean containsPiece = cell.getPiece() != null;
-                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
+        if (!curKing.isInCheck()) // If the king is not in check, it's hardly checkmate.
+            return false;
 
-                cell.draw(b, x, y, tileWidth, tileHeight);
-
-                if (cell == selected)
-                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
-                else if (POSSIBLE_MOVES.contains(cell, true)) {
-                    if (cell.getPiece() != null)
-                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    else
-                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
-                } else if (inCheck)
-                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
-
-                if (cell.getPiece() != null) {
-                    Sprite s = cell.getPiece().getSprite();
-                    float halfWidth = tileWidth / 2f;
-                    float halfHeight = tileHeight / 2f;
-
-                    s.setScale(PIECE_SCALE);
-                    s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
-                    s.draw(b);
-                }
-            }
-        }
-        b.end();
-    }
-
-    public King getKing(Team t) {
-        if (t == Team.WHITE)
-            return WHITE_KING;
-        else
-            return BLACK_KING;
-    }
-
-    public void reset() {
-        // Clear the table
-        for (Cell[] arr : BOARD)
-            for (Cell c : arr)
-                c.setPiece(null);
-
-        // Initialize pieces
-        for (int i = 0; i < NUM_FILES; i++) {
-            BOARD[1][i].setPiece(new Pawn(Team.WHITE));
-            BOARD[6][i].setPiece(new Pawn(Team.BLACK));
-
-            switch(i) {
-                case 0:
-                case 7:
-                    BOARD[0][i].setPiece(new Rook(Team.WHITE));
-                    BOARD[7][i].setPiece(new Rook(Team.BLACK));
-                    break;
-                case 1:
-                case 6:
-                    BOARD[0][i].setPiece(new Knight(Team.WHITE));
-                    BOARD[7][i].setPiece(new Knight(Team.BLACK));
-                    break;
-                case 2:
-                case 5:
-                    BOARD[0][i].setPiece(new Bishop(Team.WHITE));
-                    BOARD[7][i].setPiece(new Bishop(Team.BLACK));
-                    break;
-                case 3:
-                    BOARD[0][i].setPiece(new Queen(Team.WHITE));
-                    BOARD[7][i].setPiece(new Queen(Team.BLACK));
-                    break;
-                case 4:
-                    BOARD[0][i].setPiece(WHITE_KING);
-                    BOARD[7][i].setPiece(BLACK_KING);
-                    break;
-            }
-        }
-
-        POSSIBLE_MOVES.clear();
-        selected = null;
-        destination = null;
-
-        curTeam = Team.WHITE;
+        return true;
     }
 
     /**
@@ -349,6 +298,100 @@ public class Board extends InputAdapter{
         }
 
         return false;
+    }
+
+    /**
+     * Draws the board and everything on it, including highlights on tiles
+     * @param b the {@code Batch} to use for drawing
+     */
+    public void draw(Batch b) {
+        Camera camera = APP.getViewport().getCamera();
+        float tileWidth = width / NUM_FILES;
+        float tileHeight = height / NUM_RANKS;
+
+        camera.update();
+        b.setProjectionMatrix(camera.combined);
+        b.begin();
+        for (int rank = 0; rank < NUM_RANKS; rank++) {
+            for (int file = 0; file < NUM_FILES; file++) {
+                Cell cell = BOARD[rank][file];
+                float xPos = x + tileWidth * file;
+                float yPos = y + tileHeight * rank;
+                boolean containsPiece = cell.getPiece() != null;
+                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
+
+                cell.draw(b, x, y, tileWidth, tileHeight);
+
+                if (cell == selected)
+                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
+                else if (POSSIBLE_MOVES.contains(cell, true)) {
+                    if (cell.getPiece() != null)
+                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    else
+                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
+                } else if (inCheck)
+                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
+
+                if (cell.getPiece() != null) {
+                    Sprite s = cell.getPiece().getSprite();
+                    float halfWidth = tileWidth / 2f;
+                    float halfHeight = tileHeight / 2f;
+
+                    s.setScale(PIECE_SCALE);
+                    s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
+                    s.draw(b);
+                }
+            }
+        }
+        b.end();
+    }
+
+    /**
+     * Resets the game
+     */
+    public void reset() {
+        // Clear the table
+        for (Cell[] arr : BOARD)
+            for (Cell c : arr)
+                c.setPiece(null);
+
+        // Initialize pieces
+        for (int i = 0; i < NUM_FILES; i++) {
+            BOARD[1][i].setPiece(new Pawn(Team.WHITE));
+            BOARD[6][i].setPiece(new Pawn(Team.BLACK));
+
+            switch(i) {
+                case 0:
+                case 7:
+                    BOARD[0][i].setPiece(new Rook(Team.WHITE));
+                    BOARD[7][i].setPiece(new Rook(Team.BLACK));
+                    break;
+                case 1:
+                case 6:
+                    BOARD[0][i].setPiece(new Knight(Team.WHITE));
+                    BOARD[7][i].setPiece(new Knight(Team.BLACK));
+                    break;
+                case 2:
+                case 5:
+                    BOARD[0][i].setPiece(new Bishop(Team.WHITE));
+                    BOARD[7][i].setPiece(new Bishop(Team.BLACK));
+                    break;
+                case 3:
+                    BOARD[0][i].setPiece(new Queen(Team.WHITE));
+                    BOARD[7][i].setPiece(new Queen(Team.BLACK));
+                    break;
+                case 4:
+                    BOARD[0][i].setPiece(WHITE_KING);
+                    BOARD[7][i].setPiece(BLACK_KING);
+                    break;
+            }
+        }
+
+        POSSIBLE_MOVES.clear();
+        selected = null;
+        destination = null;
+
+        curTeam = Team.WHITE;
     }
 
     @Override

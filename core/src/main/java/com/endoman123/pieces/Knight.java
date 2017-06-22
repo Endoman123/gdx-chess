@@ -23,13 +23,14 @@ public class Knight extends Piece {
     public Array<Cell> getMoves(Cell[][] board, int file, int rank) {
         int up = rank + 1, down = rank - 1, left = file - 1, right = file + 1;
         Array<Cell> possibleMoves = new Array<Cell>();
+
         // You should always clear the moves list
         POSSIBLE_MOVES.clear();
 
         boolean validUp = up < board.length;
         boolean validUp2 = up + 1 < board.length;
         boolean validDown = down >= 0;
-        boolean validDown2 = down - 1 > 0;
+        boolean validDown2 = down - 1 >= 0;
         boolean validLeft = left >= 0;
         boolean validLeft2 = left - 1 > 0;
         boolean validRight = right < board[0].length;
