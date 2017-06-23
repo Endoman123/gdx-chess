@@ -17,7 +17,7 @@ public class Assets {
     }
 
     public static class GameObjects {
-        public static AssetDescriptor<TextureAtlas> PIECES_ATLAS = new AssetDescriptor<TextureAtlas>("pieces.atlas", TextureAtlas.class);
-        public static AssetDescriptor<TextureAtlas> BOARD_ATLAS = new AssetDescriptor<TextureAtlas>("board.pack", TextureAtlas.class);
+        public static AssetDescriptor<TextureAtlas> PIECES_ATLAS = new AssetDescriptor<TextureAtlas>("pieces/pieces.atlas", TextureAtlas.class);
+        public static AssetDescriptor<TextureAtlas> BOARD_ATLAS = new AssetDescriptor<TextureAtlas>("board/board.pack", TextureAtlas.class);
     }
 }

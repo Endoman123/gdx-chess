@@ -17,7 +17,7 @@ public class Lwjgl3Launcher {
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("Chess");
-        configuration.setWindowedMode(800, 800);
+        configuration.setWindowedMode(800, 450);
         return configuration;
     }
 }

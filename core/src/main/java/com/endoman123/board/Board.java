@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.endoman123.main.Application;
 import com.endoman123.pieces.*;
@@ -20,8 +21,9 @@ import com.endoman123.util.Assets;
  *
  * @author Jared Tulayan
  */
-public class Board extends InputAdapter{
+public class Board extends InputAdapter {
     private final Application APP;
+    private final Stage UI_CANVAS;
 
     private float x, y, width, height;
     private final float PIECE_SCALE = 0.5f;
@@ -78,41 +80,25 @@ public class Board extends InputAdapter{
         CHECK_TILE = a.findRegion("check");
 
         reset(Team.LIGHT_GRAY, Team.DARK_GRAY);
+
+        UI_CANVAS = new Stage(APP.getViewport(), APP.getBatch());
     }
 
     /**
-     * Gets the cell containing the specified piece
-     * @param p the piece to search for in all the cells
-     * @return the cell containing p, or null if none of them have it.
+     * Method to initialize UI
      */
-    public Cell getCellContaining(Piece p) {
-        int size = NUM_FILES * NUM_RANKS;
-        for (int i = 0; i < size; i++) {
-            int rank = i / NUM_FILES;
-            int file = i % NUM_FILES;
-            Cell c = BOARD[rank][file];
+/*    private void initializeUI() {
+        final Skin SKIN = ;
+        final Table TABLE = new Table();
+        final TextArea PANE = new TextArea("Test", new Skin());
 
-            if (c.getPiece() == p)
-                return c;
-        }
+        TABLE.setFillParent(true);
+        TABLE.add().expand().fill().uniform();
+        TABLE.add(PANE).expand().fill().pad(16).uniform();
 
-        return null;
-    }
-
-    /**
-     * Gets the king for the specified team
-     * @param t the team to get the king for
-     * @return the white king or black king, depending on the team
-     */
-    public King getKing(Team t) {
-        if (t != teamA && t != teamB)
-            throw new IllegalArgumentException("t must be a playing team color");
-
-        if (t == teamA)
-            return kingA;
-        else
-            return kingB;
-    }
+        UI_CANVAS.addActor(TABLE);
+        UI_CANVAS.setDebugAll(true);
+    }*/
 
     /**
      * Updates the state of the game
@@ -120,6 +106,9 @@ public class Board extends InputAdapter{
      * @param delta the time passed in between updates.
      */
     public void update(float delta) {
+        // Update canvas
+        UI_CANVAS.act(delta);
+
         // Do a move when the chance arises
         if (selected != null && destination != null) {
             Piece p1 = selected.getPiece();
@@ -221,6 +210,92 @@ public class Board extends InputAdapter{
             destination = null;
             POSSIBLE_MOVES.clear();
         }
+    }
+
+    /**
+     * Draws the board and everything on it, including highlights on tiles
+     * @param b the {@code Batch} to use for drawing
+     */
+    public void draw(Batch b) {
+        Camera camera = APP.getViewport().getCamera();
+        float tileWidth = width / NUM_FILES;
+        float tileHeight = height / NUM_RANKS;
+
+        camera.update();
+        b.setProjectionMatrix(camera.combined);
+        b.begin();
+        for (int rank = 0; rank < NUM_RANKS; rank++) {
+            for (int file = 0; file < NUM_FILES; file++) {
+                Cell cell = BOARD[rank][file];
+                float xPos = x + tileWidth * file;
+                float yPos = y + tileHeight * rank;
+                boolean containsPiece = cell.getPiece() != null;
+                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
+
+                cell.draw(b, x, y, tileWidth, tileHeight);
+
+                if (cell == selected)
+                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
+                else if (POSSIBLE_MOVES.contains(cell, true)) {
+                    if (cell.getPiece() != null)
+                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    else if (selected.getPiece() instanceof Pawn && selected.FILE != cell.FILE) { // Case specifically to make en passant same as an attack
+                        int dir = ((Pawn)selected.getPiece()).DIRECTION;
+                        Piece passant = BOARD[cell.RANK - dir][cell.FILE].getPiece();
+                        if (passant instanceof Pawn && passant.getTeam() != curTeam)
+                            b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    } else
+                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
+                } else if (inCheck)
+                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
+
+                if (cell.getPiece() != null) {
+                    Sprite s = cell.getPiece().getSprite();
+                    float halfWidth = tileWidth / 2f;
+                    float halfHeight = tileHeight / 2f;
+
+                    s.setScale(PIECE_SCALE);
+                    s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
+                    s.draw(b);
+                }
+            }
+        }
+        b.end();
+        UI_CANVAS.draw();
+    }
+
+    /**
+     * Gets the cell containing the specified piece
+     * @param p the piece to search for in all the cells
+     * @return the cell containing p, or null if none of them have it.
+     */
+    public Cell getCellContaining(Piece p) {
+        int size = NUM_FILES * NUM_RANKS;
+        for (int i = 0; i < size; i++) {
+            int rank = i / NUM_FILES;
+            int file = i % NUM_FILES;
+            Cell c = BOARD[rank][file];
+
+            if (c.getPiece() == p)
+                return c;
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets the king for the specified team
+     * @param t the team to get the king for
+     * @return the white king or black king, depending on the team
+     */
+    public King getKing(Team t) {
+        if (t != teamA && t != teamB)
+            throw new IllegalArgumentException("t must be a playing team color");
+
+        if (t == teamA)
+            return kingA;
+        else
+            return kingB;
     }
 
     /**
@@ -400,57 +475,6 @@ public class Board extends InputAdapter{
         Team team = src.getPiece().getTeam();
 
         return checkIllegalMove(src, BOARD[src.RANK][src.FILE + direction], team);
-    }
-
-    /**
-     * Draws the board and everything on it, including highlights on tiles
-     * @param b the {@code Batch} to use for drawing
-     */
-    public void draw(Batch b) {
-        Camera camera = APP.getViewport().getCamera();
-        float tileWidth = width / NUM_FILES;
-        float tileHeight = height / NUM_RANKS;
-
-        camera.update();
-        b.setProjectionMatrix(camera.combined);
-        b.begin();
-        for (int rank = 0; rank < NUM_RANKS; rank++) {
-            for (int file = 0; file < NUM_FILES; file++) {
-                Cell cell = BOARD[rank][file];
-                float xPos = x + tileWidth * file;
-                float yPos = y + tileHeight * rank;
-                boolean containsPiece = cell.getPiece() != null;
-                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
-
-                cell.draw(b, x, y, tileWidth, tileHeight);
-
-                if (cell == selected)
-                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
-                else if (POSSIBLE_MOVES.contains(cell, true)) {
-                    if (cell.getPiece() != null)
-                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    else if (selected.getPiece() instanceof Pawn && selected.FILE != cell.FILE) { // Case specifically to make en passant same as an attack
-                        int dir = ((Pawn)selected.getPiece()).DIRECTION;
-                        Piece passant = BOARD[cell.RANK - dir][cell.FILE].getPiece();
-                        if (passant instanceof Pawn && passant.getTeam() != curTeam)
-                            b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    } else
-                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
-                } else if (inCheck)
-                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
-
-                if (cell.getPiece() != null) {
-                    Sprite s = cell.getPiece().getSprite();
-                    float halfWidth = tileWidth / 2f;
-                    float halfHeight = tileHeight / 2f;
-
-                    s.setScale(PIECE_SCALE);
-                    s.setPosition(xPos + halfWidth - s.getOriginX(), yPos + halfHeight - s.getOriginY());
-                    s.draw(b);
-                }
-            }
-        }
-        b.end();
     }
 
     /**

@@ -14,7 +14,7 @@ public class Application extends Game {
 
     @Override
     public void create() {
-        viewport = new FitViewport(800, 800);
+        viewport = new FitViewport(1280, 720);
         batch = new SpriteBatch();
 
         setScreen(new LoadingScreen());

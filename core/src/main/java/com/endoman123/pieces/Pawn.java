@@ -54,7 +54,7 @@ public class Pawn extends Piece {
                     passantPiece != null && passantPiece.getTeam() != getTeam() && passantPiece instanceof Pawn;
 
             boolean validEnPassant =
-                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank - board.length) == 5;
+                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank * 2 - DIRECTION) == 7;
 
             if (occupied || validEnPassant)
                 POSSIBLE_MOVES.add(attack);
@@ -71,12 +71,12 @@ public class Pawn extends Piece {
                     passantPiece != null && passantPiece.getTeam() != getTeam() && passantPiece instanceof Pawn;
 
             boolean validEnPassant =
-                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank - board.length) == 5;
+                    isOpposingPawn && passantPiece.getLastMove() != null && Math.abs(rank * 2 - DIRECTION) == 7;
 
             if (occupied || validEnPassant)
                 POSSIBLE_MOVES.add(attack);
             else
-                System.out.println(isOpposingPawn + " || " + validEnPassant);
+                System.out.println(Math.abs(rank - board.length));
         }
 
         return POSSIBLE_MOVES;

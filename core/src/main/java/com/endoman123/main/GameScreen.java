@@ -8,15 +8,19 @@ import com.endoman123.board.Board;
 public class GameScreen implements Screen {
     private final Application APP;
     private final Board BOARD;
+
     public GameScreen() {
         APP = (Application) Gdx.app.getApplicationListener();
-        BOARD = new Board(100, 100, 500, 500, 8, 8);
+        float halfWidth = APP.getViewport().getWorldWidth() / 2f;
+
+        BOARD = new Board(32, 32, halfWidth - 64, halfWidth - 64, 8, 8);
 
         Gdx.input.setInputProcessor(BOARD);
     }
-//B
+
     @Override
     public void show() {
+
     }
 
     @Override
@@ -27,6 +31,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
+
     }
 
     @Override
