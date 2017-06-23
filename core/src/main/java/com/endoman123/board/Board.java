@@ -149,7 +149,9 @@ public class Board extends InputAdapter{
                 rook.toggleMoved();
                 castle = true;
             } else if (enPassant) {
+                int dir = ((Pawn)p1).DIRECTION;
 
+                BOARD[destination.RANK - dir][destination.FILE].setPiece(null);
             }
 
             selected.setPiece(null);
@@ -427,7 +429,12 @@ public class Board extends InputAdapter{
                 else if (POSSIBLE_MOVES.contains(cell, true)) {
                     if (cell.getPiece() != null)
                         b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    else
+                    else if (selected.getPiece() instanceof Pawn && selected.FILE != cell.FILE) { // Case specifically to make en passant same as an attack
+                        int dir = ((Pawn)selected.getPiece()).DIRECTION;
+                        Piece passant = BOARD[cell.RANK - dir][cell.FILE].getPiece();
+                        if (passant instanceof Pawn && passant.getTeam() != curTeam)
+                            b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    } else
                         b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
                 } else if (inCheck)
                     b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
