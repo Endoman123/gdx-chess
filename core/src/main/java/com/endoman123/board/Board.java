@@ -113,6 +113,15 @@ public class Board extends InputAdapter {
         if (selected != null && destination != null) {
             Piece p1 = selected.getPiece();
             Piece p2 = destination.getPiece();
+            Cell src = null, dst = null;
+
+            // Make cell copies for notating
+            try {
+                src = new Cell(selected);
+                dst = new Cell(destination);
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
 
             // Castle/En Passant check
             boolean castle = p1 instanceof King && Math.abs(destination.FILE - selected.FILE) == 2,
@@ -124,12 +133,15 @@ public class Board extends InputAdapter {
             // Do move
             doMove(selected, destination);
 
+            // Flip turn
+            flipTurn();
+
             // Check if cur king is in check
             King king = getKing(curTeam);
             updateKing(king);
 
             // Notate
-            notateMove(selected, destination, king, castle, enPassant);
+            notateMove(src, dst, king, castle, enPassant);
 
             // Set up for next phase
             selected = null;

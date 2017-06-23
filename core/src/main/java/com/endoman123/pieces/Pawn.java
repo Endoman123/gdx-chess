@@ -38,7 +38,7 @@ public class Pawn extends Piece {
         if (fwd < board.length) {
             if (board[fwd][file].getPiece() == null) {
                 POSSIBLE_MOVES.add(board[fwd][file]);
-                if (board[fwd2][file].getPiece() == null && !hasMoved)
+                if (!hasMoved && board[fwd2][file].getPiece() == null)
                     POSSIBLE_MOVES.add(board[fwd2][file]);
             }
         }

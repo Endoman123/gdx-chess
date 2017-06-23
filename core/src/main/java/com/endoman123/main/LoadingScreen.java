@@ -14,13 +14,14 @@ public class LoadingScreen extends ScreenAdapter {
     public void show() {
         Assets.MANAGER.load(Assets.GameObjects.BOARD_ATLAS);
         Assets.MANAGER.load(Assets.GameObjects.PIECES_ATLAS);
+        Assets.MANAGER.load(Assets.UI.SKIN);
     }
 
     @Override
     public void render(float delta) {
         if (Assets.MANAGER.update()) {
             Application app = (Application) Gdx.app.getApplicationListener();
-            app.setScreen(new GameScreen());
+            app.setScreen(new MainMenuScreen());
             this.dispose();
         }
     }
