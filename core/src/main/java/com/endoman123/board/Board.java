@@ -114,102 +114,128 @@ public class Board extends InputAdapter {
             Piece p1 = selected.getPiece();
             Piece p2 = destination.getPiece();
 
-            clearHistory(curTeam);
-
-            // Booleans for castling and "passing"
+            // Castle/En Passant check
             boolean castle = p1 instanceof King && Math.abs(destination.FILE - selected.FILE) == 2,
                     enPassant = p1 instanceof Pawn && destination.FILE != selected.FILE && p2 == null;
 
-            // Move piece
-            if (castle) {
-                int rank = selected.RANK;
-                int rookDirection = (int)Math.signum(destination.FILE - selected.FILE);
-                Piece rook;
-                Cell rookTile;
 
-                if (destination.FILE - selected.FILE == -2) // queenside castle
-                    rookTile = BOARD[rank][0];
-                else
-                    rookTile = BOARD[rank][7];
+            clearHistory(curTeam);
 
-                rook = rookTile.getPiece();
-                rookTile.setPiece(null);
-                BOARD[rank][destination.FILE - rookDirection].setPiece(rook);
-                rook.toggleMoved();
-                castle = true;
-            } else if (enPassant) {
-                int dir = ((Pawn)p1).DIRECTION;
-
-                BOARD[destination.RANK - dir][destination.FILE].setPiece(null);
-            }
-
-            selected.setPiece(null);
-            destination.setPiece(p1);
-            p1.toggleMoved();
-            p1.setLastMove(destination);
-
-            // Flip turns
-            if (curTeam == teamA)
-                curTeam = teamB;
-            else
-                curTeam = teamA;
+            // Do move
+            doMove(selected, destination);
 
             // Check if cur king is in check
-            King curKing = getKing(curTeam);
-            updateCheck(curTeam);
-
-            boolean checkmate = false;
+            King king = getKing(curTeam);
+            updateKing(king);
 
             // Notate
-            if (curTeam == teamB)
-                LOG_BUILDER.append(curTurn).append(". ");
-
-            if (castle) {
-                if (destination.FILE - selected.FILE == -2) // Queenside
-                    LOG_BUILDER.append(AlgebraicNotation.CASTLE_QUEENSIDE);
-                else
-                    LOG_BUILDER.append(AlgebraicNotation.CASTLE_KINGSIDE);
-            } else {
-                LOG_BUILDER.append(p1);
-                if (p2 != null) {
-                    if (p1 instanceof Pawn)
-                        LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
-
-                    LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
-                }
-
-                LOG_BUILDER.append(destination);
-
-                if (enPassant)
-                    LOG_BUILDER.append(AlgebraicNotation.EN_PASSANT);
-            }
-
-            if (curKing.isInCheck()) {
-                checkmate = isCheckmate(curTeam);
-                if (checkmate)
-                    LOG_BUILDER.append(AlgebraicNotation.CHECKMATE);
-                else
-                    LOG_BUILDER.append(AlgebraicNotation.CHECK);
-            }
-
-            if (curTeam == teamA || checkmate) {
-                System.out.println(LOG_BUILDER);
-                if (checkmate) {
-                    if (curTeam == teamA) // Team B won
-                        System.out.println(AlgebraicNotation.WIN_B);
-                    else // Team A won
-                        System.out.println(AlgebraicNotation.WIN_A);
-                }
-                LOG_BUILDER.delete(0, LOG_BUILDER.length());
-                curTurn++;
-            } else
-                LOG_BUILDER.append(" ");
+            notateMove(selected, destination, king, castle, enPassant);
 
             // Set up for next phase
             selected = null;
             destination = null;
             POSSIBLE_MOVES.clear();
         }
+    }
+
+    /**
+     * Performs the specified move by moving the piece in the source cell to the destination cell.
+     *
+     * @param src the beginning position
+     * @param dst the destination
+     */
+    public void doMove(Cell src, Cell dst) {
+        Piece p1 = src.getPiece();
+        Piece p2 = dst.getPiece();
+
+        // Castle/En Passant check
+        boolean castle = p1 instanceof King && Math.abs(dst.FILE - src.FILE) == 2,
+                enPassant = p1 instanceof Pawn && dst.FILE != src.FILE && p2 == null;
+
+        // Move piece
+        if (castle) {
+            int rank = src.RANK;
+            int rookDirection = (int)Math.signum(dst.FILE - src.FILE);
+            Piece rook;
+            Cell rookTile;
+
+            if (dst.FILE - src.FILE == -2) // queenside castle
+                rookTile = BOARD[rank][0];
+            else
+                rookTile = BOARD[rank][7];
+
+            rook = rookTile.getPiece();
+            rookTile.setPiece(null);
+            BOARD[rank][dst.FILE - rookDirection].setPiece(rook);
+            rook.toggleMoved();
+            castle = true;
+        } else if (enPassant) {
+            int dir = ((Pawn)p1).DIRECTION;
+
+            BOARD[dst.RANK - dir][dst.FILE].setPiece(null);
+        }
+
+        src.setPiece(null);
+        dst.setPiece(p1);
+        p1.toggleMoved();
+        p1.setLastMove(dst);
+    }
+
+    /**
+     * Flips the current turn
+     */
+    public void flipTurn() {
+        if (curTeam == teamA)
+            curTeam = teamB;
+        else
+            curTeam = teamA;
+    }
+
+    public void notateMove(Cell src, Cell dst, King king, boolean castle, boolean enPassant) {
+        Piece p1 = src.getPiece();
+        Piece p2 = dst.getPiece();
+
+        if (curTeam == teamB)
+            LOG_BUILDER.append(curTurn).append(". ");
+
+        if (castle) {
+            if (destination.FILE - selected.FILE == -2) // Queenside
+                LOG_BUILDER.append(AlgebraicNotation.CASTLE_QUEENSIDE);
+            else
+                LOG_BUILDER.append(AlgebraicNotation.CASTLE_KINGSIDE);
+        } else {
+            LOG_BUILDER.append(p1);
+            if (p2 != null) {
+                if (p1 instanceof Pawn)
+                    LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
+
+                LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
+            }
+
+            LOG_BUILDER.append(destination);
+
+            if (enPassant)
+                LOG_BUILDER.append(AlgebraicNotation.EN_PASSANT);
+        }
+
+        if (king.isInCheck() && king.canMove())
+            LOG_BUILDER.append(AlgebraicNotation.CHECK);
+        else if (king.isInCheck() && !king.canMove())
+            LOG_BUILDER.append(AlgebraicNotation.CHECKMATE);
+
+        boolean checkmate = king.isInCheck() && !king.canMove();
+        if (curTeam == teamA || checkmate) {
+            System.out.println(LOG_BUILDER);
+            if (checkmate) {
+                if (curTeam == teamA) // Team B won
+                    System.out.println(AlgebraicNotation.WIN_B);
+                else // Team A won
+                    System.out.println(AlgebraicNotation.WIN_A);
+            }
+            LOG_BUILDER.delete(0, LOG_BUILDER.length());
+            curTurn++;
+        } else
+            LOG_BUILDER.append(" ");
     }
 
     /**
@@ -313,29 +339,49 @@ public class Board extends InputAdapter {
     }
 
     /**
-     * Checks if the specified team's king is in check, then updates the king if it is.
+     * Updates the current king's status (checked, can move, etc.)
      *
-     * @param t the team the king belongs to
+     * @param king the {@code King} whose states to update
      */
-    public void updateCheck(Team t) {
-        King curKing = getKing(t);
-        Cell curCell = getCellContaining(curKing);
+    public void updateKing(King king) {
+        Cell curCell = getCellContaining(king);
         Array<Cell> possibleMoves = new Array<Cell>();
-        curKing.setCheck(false);
+        king.setCheck(false);
 
         for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
             Cell c = BOARD[i / NUM_FILES][i % NUM_FILES];
 
             possibleMoves.clear();
-            if (c.getPiece() == null || c.getPiece().getTeam() == t)
+            if (c.getPiece() == null || c.getPiece().getTeam() == king.getTeam())
                 continue;
 
             possibleMoves.addAll(c.getPiece().getMoves(BOARD, c.FILE, c.RANK));
 
             if (possibleMoves.contains(curCell, true)) {
-                curKing.setCheck(true);
+                king.setCheck(true);
             }
         }
+
+        Array<Cell> moveCache = new Array<Cell>();
+
+        boolean canMove = false;
+        for (Cell[] rank : BOARD) {
+            for (Cell cell : rank) {
+                if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
+                    moveCache.clear();
+                    moveCache.addAll(cell.getPiece().getMoves(BOARD, cell.FILE, cell.RANK));
+                    filterMoves(moveCache, cell, king.getTeam());
+
+                    if (moveCache.size > 0) {
+                        canMove = true;
+                    }
+                }
+            }
+            if (canMove)
+                break;
+        }
+
+        king.setCanMove(canMove);
     }
 
     /**

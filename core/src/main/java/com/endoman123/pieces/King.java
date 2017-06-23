@@ -10,6 +10,7 @@ import com.endoman123.util.Assets;
  */
 public class King extends Piece {
     private boolean inCheck;
+    private boolean canMove;
     private boolean hasMoved;
 
     public King(Team t) {
@@ -21,6 +22,10 @@ public class King extends Piece {
 
     public void setCheck(boolean check) {
         inCheck = check;
+    }
+
+    public void setCanMove(boolean can) {
+        canMove = can;
     }
 
     /**
@@ -36,6 +41,10 @@ public class King extends Piece {
 
     public boolean isInCheck() {
         return inCheck;
+    }
+
+    public boolean canMove() {
+        return canMove;
     }
 
     @Override

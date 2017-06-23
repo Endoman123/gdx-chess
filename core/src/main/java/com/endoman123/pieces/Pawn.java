@@ -75,8 +75,6 @@ public class Pawn extends Piece {
 
             if (occupied || validEnPassant)
                 POSSIBLE_MOVES.add(attack);
-            else
-                System.out.println(Math.abs(rank - board.length));
         }
 
         return POSSIBLE_MOVES;
