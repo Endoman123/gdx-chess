@@ -93,8 +93,8 @@ public class MoveFilters {
      */
     private static boolean isMoveCheck(Board board, Cell src, Cell dst) {
         Array<Cell> possibleMoves = new Array<Cell>();
-        Cell[][] boardCopy;
         Team team = src.getPiece().getTeam();
+        Cell[][] boardCopy;
         Cell srcCopy;
         Cell dstCopy;
         Cell kingCopy;

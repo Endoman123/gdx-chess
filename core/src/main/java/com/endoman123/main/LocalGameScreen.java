@@ -86,6 +86,9 @@ public class LocalGameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         if (source != null && destination != null) {
+            if (source.getPiece() == null)
+                throw new IllegalStateException("The source move is null!");
+
             King curKing = BOARD.getKing(curTeam), otherKing;
             Piece p1 = source.getPiece();
             Piece p2 = destination.getPiece();
@@ -120,19 +123,23 @@ public class LocalGameScreen extends ScreenAdapter {
             if (curTeam == TEAM_B)
                 System.out.print(curTurn + ". ");
             System.out.print(AlgebraicNotation.notateMove(src, dst, otherKing) + " ");
-            if (curTeam == TEAM_A)
+            if (curTeam == TEAM_A) {
                 System.out.println();
+                curTurn++;
+            }
 
             if (otherKing.isInCheck() && !otherKing.canMove()) { // Checkmate
-                if (curKing.getTeam() == TEAM_A) // Team A won
-                    System.out.println(AlgebraicNotation.Constants.WIN_A);
-                else
+                System.out.println(otherKing.getTeam());
+                if (curTeam == TEAM_A) // Team B won
                     System.out.println(AlgebraicNotation.Constants.WIN_B);
-            } else { // Game is not over
-                source = null;
-                destination = null;
-                POSSIBLE_MOVES.clear();
+                else // Team A won
+                    System.out.println("\n" + AlgebraicNotation.Constants.WIN_A);
+
             }
+
+            source = null;
+            destination = null;
+            POSSIBLE_MOVES.clear();
         }
 
         BOARD.drawBoard(APP.getBatch());

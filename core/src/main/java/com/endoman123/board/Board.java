@@ -30,10 +30,6 @@ public class Board {
     private Team teamA, teamB;
     private King kingA, kingB;
 
-    private int curTurn = 1;
-    private Team curTeam;
-    private final StringBuilder LOG_BUILDER;
-
     /**
      * Constructs a new {@link Board} at the specified location with the specified size and number of rows and columns
      * @param x the x-coordinate for the bottom-left corner
@@ -53,7 +49,6 @@ public class Board {
 
         POSSIBLE_MOVES = new Array<Cell>(Cell.class);
         CELLS = new Cell[NUM_RANKS][NUM_FILES];
-        LOG_BUILDER = new StringBuilder();
 
         // Initialize board
         int size = NUM_FILES * NUM_RANKS;
@@ -83,9 +78,6 @@ public class Board {
     public void performMove(Cell src, Cell dst) {
         Piece p1 = src.getPiece();
         Piece p2 = dst.getPiece();
-
-        if (p1 == null)
-            throw new NullPointerException("p1 is null");
 
         // Castle/En Passant check
         boolean castle = p1 instanceof King && Math.abs(dst.FILE - src.FILE) == 2,
@@ -227,7 +219,7 @@ public class Board {
      * @param king the {@code King} whose states to update
      */
     public void updateKing(King king) {
-        Cell curCell = getCellContaining(king);
+        Cell kingCell = getCellContaining(king);
         Array<Cell> possibleMoves = new Array<Cell>();
         king.setCheck(false);
 
@@ -235,35 +227,35 @@ public class Board {
             Cell c = CELLS[i / NUM_FILES][i % NUM_FILES];
 
             possibleMoves.clear();
+
             if (c.getPiece() == null || c.getPiece().getTeam() == king.getTeam())
                 continue;
 
             possibleMoves.addAll(c.getPiece().getMoves(CELLS, c.FILE, c.RANK));
 
-            if (possibleMoves.contains(curCell, true)) {
+            if (possibleMoves.contains(kingCell, true)) {
                 king.setCheck(true);
             }
         }
 
+        // Move checking
         Array<Cell> moveCache = new Array<Cell>();
 
-        boolean canMove = false;
+        king.setCanMove(false);
         for (Cell[] rank : CELLS) {
             for (Cell cell : rank) {
-                if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
+                if (cell.getPiece() != null && cell.getPiece().getTeam() != king.getTeam()) {
                     moveCache.clear();
                     moveCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
-                    MoveFilters.filterCheck(this, moveCache, curCell, king.getTeam());
+                    MoveFilters.filterCheck(this, moveCache, kingCell, king.getTeam());
 
                     if (moveCache.size > 0) {
-                        canMove = true;
+                        king.setCanMove(true);
                         break;
                     }
                 }
             }
         }
-
-        king.setCanMove(canMove);
     }
 
     /**

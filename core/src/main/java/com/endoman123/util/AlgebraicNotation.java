@@ -41,6 +41,14 @@ public class AlgebraicNotation {
         return str.toString();
     }
 
+    /**
+     * Notates the current move that has been done.
+     *
+     * @param src  the starting position
+     * @param dst  the ending position
+     * @param king the other team's king
+     * @return a notation of the move that just took place
+     */
     public static String notateMove(Cell src, Cell dst, King king) {
         StringBuilder notation = new StringBuilder();
         Piece p1 = src.getPiece();
