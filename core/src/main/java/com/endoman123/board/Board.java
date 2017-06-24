@@ -1,26 +1,23 @@
 package com.endoman123.board;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.endoman123.main.Application;
 import com.endoman123.pieces.*;
-import com.endoman123.util.AlgebraicNotation;
 import com.endoman123.util.Assets;
+import com.endoman123.util.MoveFilters;
 
 /**
  * Container of {@link Cell}s with methods to update the state of the board.
  *
  * @author Jared Tulayan
  */
-public class Board extends InputAdapter {
+public class Board {
     private final Application APP;
 
     private float x, y, width, height;
@@ -29,10 +26,9 @@ public class Board extends InputAdapter {
     private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
 
     private final Array<Cell> POSSIBLE_MOVES;
-    private final Cell[][] BOARD;
+    public final Cell[][] CELLS;
     private Team teamA, teamB;
     private King kingA, kingB;
-    private Cell selected, destination;
 
     private int curTurn = 1;
     private Team curTeam;
@@ -56,7 +52,7 @@ public class Board extends InputAdapter {
         NUM_RANKS = r;
 
         POSSIBLE_MOVES = new Array<Cell>(Cell.class);
-        BOARD = new Cell[NUM_RANKS][NUM_FILES];
+        CELLS = new Cell[NUM_RANKS][NUM_FILES];
         LOG_BUILDER = new StringBuilder();
 
         // Initialize board
@@ -65,7 +61,7 @@ public class Board extends InputAdapter {
             int rank = i / NUM_FILES;
             int file = i % NUM_FILES;
 
-            BOARD[rank][file] = new Cell(file, rank);
+            CELLS[rank][file] = new Cell(file, rank);
         }
 
         APP = (Application) Gdx.app.getApplicationListener();
@@ -76,55 +72,6 @@ public class Board extends InputAdapter {
         MOVE_TILE = a.findRegion("move");
         ATTACK_TILE = a.findRegion("attack");
         CHECK_TILE = a.findRegion("check");
-
-        reset(Team.LIGHT_GRAY, Team.DARK_GRAY);
-    }
-
-    /**
-     * Updates the state of the game
-     *
-     * @param delta the time passed in between updates.
-     */
-    public void update(float delta) {
-        // Do a move when the chance arises
-        if (selected != null && destination != null) {
-            Piece p1 = selected.getPiece();
-            Piece p2 = destination.getPiece();
-            Cell src = null, dst = null;
-
-            // Make cell copies for notating
-            try {
-                src = new Cell(selected);
-                dst = new Cell(destination);
-            } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
-            }
-
-            // Castle/En Passant check
-            boolean castle = p1 instanceof King && Math.abs(destination.FILE - selected.FILE) == 2,
-                    enPassant = p1 instanceof Pawn && destination.FILE != selected.FILE && p2 == null;
-
-
-            clearHistory(curTeam);
-
-            // Do move
-            doMove(selected, destination);
-
-            // Flip turn
-            flipTurn();
-
-            // Check if cur king is in check
-            King king = getKing(curTeam);
-            updateKing(king);
-
-            // Notate
-            notateMove(src, dst, king, castle, enPassant);
-
-            // Set up for next phase
-            selected = null;
-            destination = null;
-            POSSIBLE_MOVES.clear();
-        }
     }
 
     /**
@@ -133,9 +80,12 @@ public class Board extends InputAdapter {
      * @param src the beginning position
      * @param dst the destination
      */
-    public void doMove(Cell src, Cell dst) {
+    public void performMove(Cell src, Cell dst) {
         Piece p1 = src.getPiece();
         Piece p2 = dst.getPiece();
+
+        if (p1 == null)
+            throw new NullPointerException("p1 is null");
 
         // Castle/En Passant check
         boolean castle = p1 instanceof King && Math.abs(dst.FILE - src.FILE) == 2,
@@ -144,24 +94,23 @@ public class Board extends InputAdapter {
         // Move piece
         if (castle) {
             int rank = src.RANK;
-            int rookDirection = (int)Math.signum(dst.FILE - src.FILE);
+            int direction = dst.FILE - src.FILE;
             Piece rook;
             Cell rookTile;
 
-            if (dst.FILE - src.FILE == -2) // queenside castle
-                rookTile = BOARD[rank][0];
+            if (direction == -2) // queenside castle
+                rookTile = CELLS[rank][0];
             else
-                rookTile = BOARD[rank][7];
+                rookTile = CELLS[rank][7];
 
             rook = rookTile.getPiece();
             rookTile.setPiece(null);
-            BOARD[rank][dst.FILE - rookDirection].setPiece(rook);
+            CELLS[rank][dst.FILE - (int)Math.signum(direction)].setPiece(rook);
             rook.toggleMoved();
-            castle = true;
         } else if (enPassant) {
             int dir = ((Pawn)p1).DIRECTION;
 
-            BOARD[dst.RANK - dir][dst.FILE].setPiece(null);
+            CELLS[dst.RANK - dir][dst.FILE].setPiece(null);
         }
 
         src.setPiece(null);
@@ -171,67 +120,11 @@ public class Board extends InputAdapter {
     }
 
     /**
-     * Flips the current turn
-     */
-    public void flipTurn() {
-        if (curTeam == teamA)
-            curTeam = teamB;
-        else
-            curTeam = teamA;
-    }
-
-    public void notateMove(Cell src, Cell dst, King king, boolean castle, boolean enPassant) {
-        Piece p1 = src.getPiece();
-        Piece p2 = dst.getPiece();
-
-        if (curTeam == teamB)
-            LOG_BUILDER.append(curTurn).append(". ");
-
-        if (castle) {
-            if (destination.FILE - selected.FILE == -2) // Queenside
-                LOG_BUILDER.append(AlgebraicNotation.CASTLE_QUEENSIDE);
-            else
-                LOG_BUILDER.append(AlgebraicNotation.CASTLE_KINGSIDE);
-        } else {
-            LOG_BUILDER.append(p1);
-            if (p2 != null) {
-                if (p1 instanceof Pawn)
-                    LOG_BUILDER.append(AlgebraicNotation.convertToBase26(selected.FILE + 1));
-
-                LOG_BUILDER.append(AlgebraicNotation.CAPTURE);
-            }
-
-            LOG_BUILDER.append(destination);
-
-            if (enPassant)
-                LOG_BUILDER.append(AlgebraicNotation.EN_PASSANT);
-        }
-
-        if (king.isInCheck() && king.canMove())
-            LOG_BUILDER.append(AlgebraicNotation.CHECK);
-        else if (king.isInCheck() && !king.canMove())
-            LOG_BUILDER.append(AlgebraicNotation.CHECKMATE);
-
-        boolean checkmate = king.isInCheck() && !king.canMove();
-        if (curTeam == teamA || checkmate) {
-            System.out.println(LOG_BUILDER);
-            if (checkmate) {
-                if (curTeam == teamA) // Team B won
-                    System.out.println(AlgebraicNotation.WIN_B);
-                else // Team A won
-                    System.out.println(AlgebraicNotation.WIN_A);
-            }
-            LOG_BUILDER.delete(0, LOG_BUILDER.length());
-            curTurn++;
-        } else
-            LOG_BUILDER.append(" ");
-    }
-
-    /**
-     * Draws the board and everything on it, including highlights on tiles
+     * Draws the board cells
+     *
      * @param b the {@code Batch} to use for drawing
      */
-    public void draw(Batch b) {
+    public void drawBoard(Batch b) {
         Camera camera = APP.getViewport().getCamera();
         float tileWidth = width / NUM_FILES;
         float tileHeight = height / NUM_RANKS;
@@ -241,28 +134,64 @@ public class Board extends InputAdapter {
         b.begin();
         for (int rank = 0; rank < NUM_RANKS; rank++) {
             for (int file = 0; file < NUM_FILES; file++) {
-                Cell cell = BOARD[rank][file];
-                float xPos = x + tileWidth * file;
-                float yPos = y + tileHeight * rank;
-                boolean containsPiece = cell.getPiece() != null;
-                boolean inCheck = containsPiece && cell.getPiece().getTeam() == curTeam && cell.getPiece() instanceof King && ((King) cell.getPiece()).isInCheck();
+                Cell cell = CELLS[rank][file];
 
                 cell.draw(b, x, y, tileWidth, tileHeight);
+            }
+        }
+        b.end();
+    }
+
+    /**
+     * Draws the highlights on the board, given the possible moves that can be made
+     *
+     * @param b        the batch to use for moving
+     * @param moves    the possible moves list
+     * @param selected the selected tile
+     * @param team     the team to check check for
+     */
+    public void drawHighlights(Batch b, Array<Cell> moves, Cell selected, Team team) {
+        Camera camera = APP.getViewport().getCamera();
+        King king = getKing(team);
+
+        camera.update();
+        b.setProjectionMatrix(camera.combined);
+        b.begin();
+        for (Cell[] rank : CELLS) {
+            for (Cell cell : rank) {
+                float xPos = x + getTileWidth() * cell.FILE;
+                float yPos = y + getTileHeight() * cell.RANK;
+                boolean containsPiece = cell.getPiece() != null;
+                boolean checkCell = cell.getPiece() == king && king.isInCheck();
 
                 if (cell == selected)
-                    b.draw(SELECT_TILE, xPos, yPos, tileWidth, tileHeight);
-                else if (POSSIBLE_MOVES.contains(cell, true)) {
-                    if (cell.getPiece() != null)
-                        b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    else if (selected.getPiece() instanceof Pawn && selected.FILE != cell.FILE) { // Case specifically to make en passant same as an attack
-                        int dir = ((Pawn)selected.getPiece()).DIRECTION;
-                        Piece passant = BOARD[cell.RANK - dir][cell.FILE].getPiece();
-                        if (passant instanceof Pawn && passant.getTeam() != curTeam)
-                            b.draw(ATTACK_TILE, xPos, yPos, tileWidth, tileHeight);
-                    } else
-                        b.draw(MOVE_TILE, xPos, yPos, tileWidth, tileHeight);
-                } else if (inCheck)
-                    b.draw(CHECK_TILE, xPos, yPos, tileWidth, tileHeight);
+                    b.draw(SELECT_TILE, xPos, yPos, getTileWidth(), getTileHeight());
+                else if (moves.contains(cell, true)) {
+                    boolean passantAttack = selected.getPiece() instanceof Pawn && selected.FILE != cell.FILE;
+                    if (cell.getPiece() != null || passantAttack)
+                        b.draw(ATTACK_TILE, xPos, yPos, getTileWidth(), getTileHeight());
+                    else
+                        b.draw(MOVE_TILE, xPos, yPos, getTileWidth(), getTileHeight());
+                } else if (checkCell)
+                    b.draw(CHECK_TILE, xPos, yPos, getTileWidth(), getTileHeight());
+            }
+        }
+        b.end();
+    }
+
+    public void drawPieces(Batch b) {
+        Camera camera = APP.getViewport().getCamera();
+        float tileWidth = width / NUM_FILES;
+        float tileHeight = height / NUM_RANKS;
+
+        camera.update();
+        b.setProjectionMatrix(camera.combined);
+        b.begin();
+        for (int rank = 0; rank < NUM_RANKS; rank++) {
+            for (int file = 0; file < NUM_FILES; file++) {
+                Cell cell = CELLS[rank][file];
+                float xPos = x + getTileWidth() * file;
+                float yPos = y + getTileHeight() * rank;
 
                 if (cell.getPiece() != null) {
                     Sprite s = cell.getPiece().getSprite();
@@ -279,46 +208,12 @@ public class Board extends InputAdapter {
     }
 
     /**
-     * Gets the cell containing the specified piece
-     * @param p the piece to search for in all the cells
-     * @return the cell containing p, or null if none of them have it.
-     */
-    public Cell getCellContaining(Piece p) {
-        int size = NUM_FILES * NUM_RANKS;
-        for (int i = 0; i < size; i++) {
-            int rank = i / NUM_FILES;
-            int file = i % NUM_FILES;
-            Cell c = BOARD[rank][file];
-
-            if (c.getPiece() == p)
-                return c;
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the king for the specified team
-     * @param t the team to get the king for
-     * @return the white king or black king, depending on the team
-     */
-    public King getKing(Team t) {
-        if (t != teamA && t != teamB)
-            throw new IllegalArgumentException("t must be a playing team color");
-
-        if (t == teamA)
-            return kingA;
-        else
-            return kingB;
-    }
-
-    /**
      * Clears the last immediate move from all the pieces of the specified team
      *
      * @param t the team whose history should be cleared.
      */
-    public void clearHistory(Team t) {
-        for (Cell[] rank : BOARD) {
+    public void clearMoveHistory(Team t) {
+        for (Cell[] rank : CELLS) {
             for(Cell c : rank) {
                 if (c.getPiece() != null && c.getPiece().getTeam() == t)
                     c.getPiece().setLastMove(null);
@@ -337,13 +232,13 @@ public class Board extends InputAdapter {
         king.setCheck(false);
 
         for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
-            Cell c = BOARD[i / NUM_FILES][i % NUM_FILES];
+            Cell c = CELLS[i / NUM_FILES][i % NUM_FILES];
 
             possibleMoves.clear();
             if (c.getPiece() == null || c.getPiece().getTeam() == king.getTeam())
                 continue;
 
-            possibleMoves.addAll(c.getPiece().getMoves(BOARD, c.FILE, c.RANK));
+            possibleMoves.addAll(c.getPiece().getMoves(CELLS, c.FILE, c.RANK));
 
             if (possibleMoves.contains(curCell, true)) {
                 king.setCheck(true);
@@ -353,162 +248,22 @@ public class Board extends InputAdapter {
         Array<Cell> moveCache = new Array<Cell>();
 
         boolean canMove = false;
-        for (Cell[] rank : BOARD) {
+        for (Cell[] rank : CELLS) {
             for (Cell cell : rank) {
                 if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
                     moveCache.clear();
-                    moveCache.addAll(cell.getPiece().getMoves(BOARD, cell.FILE, cell.RANK));
-                    filterMoves(moveCache, cell, king.getTeam());
+                    moveCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
+                    MoveFilters.filterCheck(this, moveCache, curCell, king.getTeam());
 
                     if (moveCache.size > 0) {
                         canMove = true;
+                        break;
                     }
                 }
             }
-            if (canMove)
-                break;
         }
 
         king.setCanMove(canMove);
-    }
-
-    /**
-     * Gets whether or not the specified is in checkmate.
-     *
-     * @param t the team to check checkmate for
-     * @return if the current team playing is in checkmate
-     */
-    public boolean isCheckmate(Team t) {
-        King curKing = getKing(t);
-        Array<Cell> moveCache = new Array<Cell>();
-
-        if (!curKing.isInCheck()) // If the king is not in check, it's hardly checkmate.
-            return false;
-
-        for (Cell[] rank : BOARD) {
-            for (Cell cell : rank) {
-                if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
-                    moveCache.clear();
-                    moveCache.addAll(cell.getPiece().getMoves(BOARD, cell.FILE, cell.RANK));
-                    filterMoves(moveCache, cell, t);
-
-                    if (moveCache.size > 0)
-                        return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Filters the current moveset for unplayable moves due to the current state of the game.
-     * @param possibleMoves the list of cells containing the current moveset
-     * @param c             the piece's starting cell
-     * @param t             the current team playing
-     * @return the filtered list
-     */
-    public Array<Cell> filterMoves(Array<Cell> possibleMoves, Cell c, Team t) {
-        int i = 0;
-        while (i < possibleMoves.size) {
-            boolean remove = false;
-            Cell m = possibleMoves.get(i);
-            // Should not be allowed to take opposing king
-            if (!c.getPiece().getTeam().equals(t) && c.getPiece() instanceof King)
-                remove = true;
-
-            // Illegal moves should (obviously) not be made
-            if (checkIllegalMove(c, m, curTeam))
-                remove = true;
-
-            // Illegal castling needs to be filtered
-            boolean isCastle = c.getPiece() instanceof King && m.RANK == c.RANK && Math.abs(m.FILE - c.FILE) == 2;
-            if (isCastle && checkIllegalCastle(c, m)) {
-                System.out.println(m + " is an illegal castle!");
-                remove = true;
-            }
-
-            if (remove)
-                possibleMoves.removeValue(m, true);
-            else
-                i++;
-        }
-
-        return possibleMoves;
-    }
-
-    /**
-     * Brute forces a move check by playing the move out and checking if it is a legal move to make
-     * i.e.: it does not put or leave the king in check
-     *
-     * @param src the starting cell
-     * @param dst the ending cell
-     * @return whether or not the move to be made is legal
-     */
-    public boolean checkIllegalMove(Cell src, Cell dst, Team t) {
-        Array<Cell> possibleMoves = new Array<Cell>();
-        Cell[][] boardCopy = new Cell[NUM_RANKS][NUM_FILES];
-        Cell kingCell = getCellContaining(getKing(t));
-        Cell srcCopy;
-        Cell dstCopy;
-        Cell kingCopy;
-
-        // Clone board
-        try {
-            for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
-                int file = i % NUM_FILES;
-                int rank = i / NUM_FILES;
-
-                boardCopy[rank][file] = new Cell(BOARD[rank][file]);
-            }
-
-            srcCopy = boardCopy[src.RANK][src.FILE];
-            dstCopy = boardCopy[dst.RANK][dst.FILE];
-
-            if (src.getPiece() instanceof King) // If the king is actually who is moving
-                kingCopy = dstCopy;
-            else
-                kingCopy = boardCopy[kingCell.RANK][kingCell.FILE];
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        // Do pseudo-move
-        Piece p1 = srcCopy.getPiece();
-
-        srcCopy.setPiece(null);
-        dstCopy.setPiece(p1);
-
-        // Check if the move leaves the king in check
-        for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
-            Cell c = boardCopy[i / NUM_FILES][i % NUM_FILES];
-
-            possibleMoves.clear();
-            if (c.getPiece() == null || c.getPiece().getTeam() == t)
-                continue;
-
-            possibleMoves.addAll(c.getPiece().getMoves(boardCopy, c.FILE, c.RANK));
-
-            if (possibleMoves.contains(kingCopy, true))
-                return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if the current move is an illegal castle.
-     *
-     * @param src the {@code Cell} that the king is standing on
-     * @param dst the {@code Cell} that the king is castling to
-     * @return if the cell in between the King and the castle destination is a legal move on its own.
-     */
-    public boolean checkIllegalCastle(Cell src, Cell dst) {
-        int direction = (int)Math.signum(dst.FILE - src.FILE);
-        Team team = src.getPiece().getTeam();
-
-        return checkIllegalMove(src, BOARD[src.RANK][src.FILE + direction], team);
     }
 
     /**
@@ -525,83 +280,127 @@ public class Board extends InputAdapter {
         kingB = new King(teamB);
 
         // Clear the table
-        for (Cell[] arr : BOARD)
+        for (Cell[] arr : CELLS)
             for (Cell c : arr)
                 c.setPiece(null);
 
         // Initialize pieces
         for (int i = 0; i < NUM_FILES; i++) {
-            BOARD[1][i].setPiece(new Pawn(teamA, 1));
-            BOARD[6][i].setPiece(new Pawn(teamB, -1));
+            CELLS[1][i].setPiece(new Pawn(teamA, 1));
+            CELLS[6][i].setPiece(new Pawn(teamB, -1));
 
             switch(i) {
                 case 0:
                 case 7:
-                    BOARD[0][i].setPiece(new Rook(teamA));
-                    BOARD[7][i].setPiece(new Rook(teamB));
+                    CELLS[0][i].setPiece(new Rook(teamA));
+                    CELLS[7][i].setPiece(new Rook(teamB));
                     break;
                 case 1:
                 case 6:
-                    BOARD[0][i].setPiece(new Knight(teamA));
-                    BOARD[7][i].setPiece(new Knight(teamB));
+                    CELLS[0][i].setPiece(new Knight(teamA));
+                    CELLS[7][i].setPiece(new Knight(teamB));
                     break;
                 case 2:
                 case 5:
-                    BOARD[0][i].setPiece(new Bishop(teamA));
-                    BOARD[7][i].setPiece(new Bishop(teamB));
+                    CELLS[0][i].setPiece(new Bishop(teamA));
+                    CELLS[7][i].setPiece(new Bishop(teamB));
                     break;
                 case 3:
-                    BOARD[0][i].setPiece(new Queen(teamA));
-                    BOARD[7][i].setPiece(new Queen(teamB));
+                    CELLS[0][i].setPiece(new Queen(teamA));
+                    CELLS[7][i].setPiece(new Queen(teamB));
                     break;
                 case 4:
-                    BOARD[0][i].setPiece(kingA);
-                    BOARD[7][i].setPiece(kingB);
+                    CELLS[0][i].setPiece(kingA);
+                    CELLS[7][i].setPiece(kingB);
                     break;
             }
         }
-
-        POSSIBLE_MOVES.clear();
-        selected = null;
-        destination = null;
-
-        curTeam = teamA;
     }
 
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Vector2 mouseSelected = APP.getViewport().unproject(new Vector2(screenX, screenY));
-        float tileWidth = width / NUM_FILES;
-        float tileHeight = height / NUM_RANKS;
-        mouseSelected.sub(x, y).set(MathUtils.floor(mouseSelected.x / tileWidth), MathUtils.floor(mouseSelected.y / tileHeight));
+    // region Getters and Setters
+    /**
+     * Gets the width of a single cell in the board.
+     * @return {@code width / NUM_FILES}
+     */
+    public float getTileWidth() {
+        return width / NUM_FILES;
+    }
 
-        boolean validX = mouseSelected.x >= 0 && mouseSelected.x < NUM_FILES;
-        boolean validY = mouseSelected.y >= 0 && mouseSelected.y < NUM_RANKS;
+    /**
+     * Gets the height of a single cell in the board.
+     * @return {@code height / NUM_RANKS}
+     */
+    public float getTileHeight() {
+        return width / NUM_FILES;
+    }
 
-        if (validX && validY) {
-            Cell cell = BOARD[(int)mouseSelected.y][(int)mouseSelected.x];
+    public float getX() {
+        return x;
+    }
 
-            if (selected != null && POSSIBLE_MOVES.contains(cell, true)) {
-                destination = cell;
-            } else if (cell == selected || cell.getPiece() == null) {
-                selected = null;
-                POSSIBLE_MOVES.clear();
-            } else if (cell.getPiece() != null && cell.getPiece().getTeam() == curTeam) {
-                selected = cell;
-                POSSIBLE_MOVES.clear();
-                POSSIBLE_MOVES.addAll(selected.getPiece().getMoves(BOARD, selected.FILE, selected.RANK));
-                filterMoves(POSSIBLE_MOVES, selected, curTeam);
-            }
-        } else {
-            selected = null;
-            POSSIBLE_MOVES.clear();
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public void setWidth(float width) {
+        this.width = width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    /**
+     * Gets the cell containing the specified piece
+     *
+     * @param p the piece to search for in all the cells
+     * @return the cell containing p, or null if none of them have it.
+     */
+    public Cell getCellContaining(Piece p) {
+        int size = NUM_FILES * NUM_RANKS;
+        for (int i = 0; i < size; i++) {
+            int rank = i / NUM_FILES;
+            int file = i % NUM_FILES;
+            Cell c = CELLS[rank][file];
+
+            if (c.getPiece() == p)
+                return c;
         }
 
-        return true;
+        return null;
     }
 
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return super.mouseMoved(screenX, screenY);
+    /**
+     * Gets the king for the specified team
+     *
+     * @param t the team to get the king for
+     * @return the white king or black king, depending on the team
+     */
+    public King getKing(Team t) {
+        if (t != teamA && t != teamB)
+            throw new IllegalArgumentException("t must be a playing team color");
+
+        if (t == teamA)
+            return kingA;
+        else
+            return kingB;
     }
+
+    // endregion
 }

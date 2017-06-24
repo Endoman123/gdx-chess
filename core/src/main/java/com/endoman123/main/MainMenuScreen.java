@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.endoman123.pieces.Team;
 import com.endoman123.util.Assets;
 
 /**
@@ -41,7 +42,7 @@ public class MainMenuScreen implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (BTN_LOCAL_PLAY.isPressed()) {
-                    APP.setScreen(new GameScreen());
+                    APP.setScreen(new LocalGameScreen(Team.LIGHT_GRAY, Team.RED));
                     ME.dispose();
                 }
             }
