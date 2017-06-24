@@ -38,11 +38,21 @@ public class MainMenuScreen implements Screen {
         final TextButton BTN_HOST = new TextButton("Host", SKIN);
         final TextButton BTN_CONNECT = new TextButton("Connect", SKIN);
 
-        BTN_LOCAL_PLAY.addListener(new ChangeListener() {
+        TABLE.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (BTN_LOCAL_PLAY.isPressed()) {
                     APP.setScreen(new LocalGameScreen(Team.LIGHT_GRAY, Team.RED));
+                    ME.dispose();
+                }
+
+                if (BTN_HOST.isPressed()) {
+                    APP.setScreen(new NetworkGameScreen(Team.LIGHT_GRAY, Integer.parseInt(TXT_PORT.getText())));
+                    ME.dispose();
+                }
+
+                if (BTN_CONNECT.isPressed()) {
+                    APP.setScreen(new NetworkGameScreen(Team.RED, TXT_IP.getText(), Integer.parseInt(TXT_PORT.getText())));
                     ME.dispose();
                 }
             }
