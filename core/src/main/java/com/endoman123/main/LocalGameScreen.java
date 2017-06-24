@@ -71,7 +71,7 @@ public class LocalGameScreen extends ScreenAdapter {
                         MoveFilters.filterCheck(BOARD, POSSIBLE_MOVES, source, curTeam);
 
                         if (source.getPiece() instanceof King)
-                        MoveFilters.filterCastle(BOARD, POSSIBLE_MOVES, BOARD.getCellContaining(BOARD.getKing(curTeam)));
+                            MoveFilters.filterCastle(BOARD, POSSIBLE_MOVES, BOARD.getCellContaining(BOARD.getKing(curTeam)));
                     }
                 } else {
                     source = null;
@@ -128,8 +128,6 @@ public class LocalGameScreen extends ScreenAdapter {
                     System.out.println(AlgebraicNotation.Constants.WIN_A);
                 else
                     System.out.println(AlgebraicNotation.Constants.WIN_B);
-            } else if (!otherKing.isInCheck() && !otherKing.canMove()) { // Stalemate
-                System.out.println(AlgebraicNotation.Constants.DRAW);
             } else { // Game is not over
                 source = null;
                 destination = null;
