@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.endoman123.main.Application;
 import com.endoman123.pieces.*;
@@ -23,7 +22,6 @@ import com.endoman123.util.Assets;
  */
 public class Board extends InputAdapter {
     private final Application APP;
-    private final Stage UI_CANVAS;
 
     private float x, y, width, height;
     private final float PIECE_SCALE = 0.5f;
@@ -80,25 +78,7 @@ public class Board extends InputAdapter {
         CHECK_TILE = a.findRegion("check");
 
         reset(Team.LIGHT_GRAY, Team.DARK_GRAY);
-
-        UI_CANVAS = new Stage(APP.getViewport(), APP.getBatch());
     }
-
-    /**
-     * Method to initialize UI
-     */
-/*    private void initializeUI() {
-        final Skin SKIN = ;
-        final Table TABLE = new Table();
-        final TextArea PANE = new TextArea("Test", new Skin());
-
-        TABLE.setFillParent(true);
-        TABLE.add().expand().fill().uniform();
-        TABLE.add(PANE).expand().fill().pad(16).uniform();
-
-        UI_CANVAS.addActor(TABLE);
-        UI_CANVAS.setDebugAll(true);
-    }*/
 
     /**
      * Updates the state of the game
@@ -106,9 +86,6 @@ public class Board extends InputAdapter {
      * @param delta the time passed in between updates.
      */
     public void update(float delta) {
-        // Update canvas
-        UI_CANVAS.act(delta);
-
         // Do a move when the chance arises
         if (selected != null && destination != null) {
             Piece p1 = selected.getPiece();
@@ -299,7 +276,6 @@ public class Board extends InputAdapter {
             }
         }
         b.end();
-        UI_CANVAS.draw();
     }
 
     /**
