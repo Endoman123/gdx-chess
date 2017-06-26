@@ -22,7 +22,7 @@ public class Board {
 
     private float x, y, width, height;
     private final float PIECE_SCALE = 0.5f;
-    public final int NUM_FILES, NUM_RANKS;
+    public final int NUM_FILES = 8, NUM_RANKS = 8;
     private final TextureRegion SELECT_TILE, MOVE_TILE, ATTACK_TILE, CHECK_TILE;
 
     private final Array<Cell> POSSIBLE_MOVES;
@@ -36,16 +36,12 @@ public class Board {
      * @param y the y-coordinate for the bottom-left corner
      * @param w the width of the board
      * @param h the height of the board
-     * @param f the number of files (columns)
-     * @param r the number of ranks (rows)
      */
-    public Board(float x, float y, float w, float h, int f, int r) {
+    public Board(float x, float y, float w, float h) {
         this.x = x;
         this.y = y;
         width = w;
         height = h;
-        NUM_FILES = f;
-        NUM_RANKS = r;
 
         POSSIBLE_MOVES = new Array<Cell>(Cell.class);
         CELLS = new Cell[NUM_RANKS][NUM_FILES];
@@ -311,7 +307,7 @@ public class Board {
      * @return {@code height / NUM_RANKS}
      */
     public float getTileHeight() {
-        return width / NUM_FILES;
+        return height / NUM_RANKS;
     }
 
     public float getX() {

@@ -39,8 +39,8 @@ public class NetworkGameScreen extends ScreenAdapter {
         MY_TEAM = team;
 
         // Init board
-        float halfWidth = APP.getViewport().getWorldWidth() / 2f;
-        BOARD = new Board(32, 32, halfWidth - 64, halfWidth - 64, 8, 8);
+        float endSize = APP.getViewport().getWorldHeight() - 64;
+        BOARD = new Board(32, 32, endSize, endSize);
 
         source = null;
         destination = null;

@@ -29,9 +29,9 @@ public class LocalGameScreen extends ScreenAdapter {
 
     public LocalGameScreen(Team a, Team b) {
         APP = (Application) Gdx.app.getApplicationListener();
-        float halfWidth = APP.getViewport().getWorldWidth() / 2f;
+        float endSize = APP.getViewport().getWorldHeight() - 64;
 
-        BOARD = new Board(32, 32, halfWidth - 64, halfWidth - 64, 8, 8);
+        BOARD = new Board(32, 32, endSize, endSize);
 
         TEAM_A = a;
         TEAM_B = b;
