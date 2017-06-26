@@ -237,12 +237,10 @@ public class Board {
                 if (!king.canMove() && cell.getPiece() != null && cell.getPiece().getTeam() == team) {
                     cellCache.clear();
                     cellCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
-                    MoveFilters.filterCheck(this, cellCache, kingCell);
+                    MoveFilters.filterCheck(this, cellCache, cell);
 
-                    if (cellCache.size > 0) {
-                        System.out.println("" + cell.getPiece() + cell);
+                    if (cellCache.size > 0)
                         king.setCanMove(true);
-                    }
                 }
             }
         }

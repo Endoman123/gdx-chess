@@ -124,6 +124,7 @@ public class LocalGameScreen extends ScreenAdapter {
                 System.out.print(curTurn + ". ");
 
             System.out.print(AlgebraicNotation.notateMove(src, dst, otherKing) + " ");
+
             if (curTeam == TEAM_A) {
                 System.out.println();
                 curTurn++;
