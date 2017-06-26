@@ -35,11 +35,11 @@ public class MoveFilters {
      * Fiters out moves that would leave the king in check.
      *
      * @param board the {@code Board} that these moves are being made on
-     * @param moves list of moves that can be made
-     * @param src   the beginning position of the
+     * @param moves list of moves that can be made by the piece on src
+     * @param src   the cell containing the piece that will move
      * @return a filtered list of moves for the current board state
      */
-    public static Array<Cell> filterCheck(Board board, Array<Cell> moves, Cell src, Team t) {
+    public static Array<Cell> filterCheck(Board board, Array<Cell> moves, Cell src) {
         int i = 0;
         while (i < moves.size) {
             Cell curMove = moves.get(i);

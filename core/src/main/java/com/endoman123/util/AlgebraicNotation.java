@@ -53,6 +53,14 @@ public class AlgebraicNotation {
         StringBuilder notation = new StringBuilder();
         Piece p1 = src.getPiece();
 
+        if (p1 == null)
+            throw new IllegalArgumentException("src must have a piece on it");
+
+        if (p1.getTeam() == king.getTeam())
+            throw new IllegalArgumentException(
+                    "king must be the enemy team, i.e.: the team opposite the piece on the src cell"
+            );
+
         boolean capture = dst.getPiece() != null;
         boolean enPassant = p1 instanceof Pawn && dst.FILE != src.FILE && dst.getPiece() == null;
         boolean castle_kingside = p1 instanceof King && dst.FILE - src.FILE == 2;

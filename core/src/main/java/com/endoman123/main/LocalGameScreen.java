@@ -68,7 +68,7 @@ public class LocalGameScreen extends ScreenAdapter {
                         POSSIBLE_MOVES.clear();
                         POSSIBLE_MOVES.addAll(source.getPiece().getMoves(BOARD.CELLS, source.FILE, source.RANK));
                         MoveFilters.filterKingCapture(POSSIBLE_MOVES);
-                        MoveFilters.filterCheck(BOARD, POSSIBLE_MOVES, source, curTeam);
+                        MoveFilters.filterCheck(BOARD, POSSIBLE_MOVES, source);
 
                         if (source.getPiece() instanceof King)
                             MoveFilters.filterCastle(BOARD, POSSIBLE_MOVES, BOARD.getCellContaining(BOARD.getKing(curTeam)));
@@ -117,11 +117,12 @@ public class LocalGameScreen extends ScreenAdapter {
 
             // Check if cur king is in check
             otherKing = BOARD.getKing(curTeam);
-            BOARD.updateKing(otherKing);
+            BOARD.updateKing(curTeam);
 
             // Notate
             if (curTeam == TEAM_B)
                 System.out.print(curTurn + ". ");
+
             System.out.print(AlgebraicNotation.notateMove(src, dst, otherKing) + " ");
             if (curTeam == TEAM_A) {
                 System.out.println();
@@ -143,7 +144,7 @@ public class LocalGameScreen extends ScreenAdapter {
         }
 
         BOARD.drawBoard(APP.getBatch());
-        BOARD.drawHighlights(APP.getBatch(), POSSIBLE_MOVES, source, curTeam);
+        BOARD.drawHighlights(APP.getBatch(), POSSIBLE_MOVES, source);
         BOARD.drawPieces(APP.getBatch());
     }
 

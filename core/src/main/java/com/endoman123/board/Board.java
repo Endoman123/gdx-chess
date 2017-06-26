@@ -136,15 +136,12 @@ public class Board {
 
     /**
      * Draws the highlights on the board, given the possible moves that can be made
-     *
      * @param b        the batch to use for moving
      * @param moves    the possible moves list
      * @param selected the selected tile
-     * @param team     the team to check check for
      */
-    public void drawHighlights(Batch b, Array<Cell> moves, Cell selected, Team team) {
+    public void drawHighlights(Batch b, Array<Cell> moves, Cell selected) {
         Camera camera = APP.getViewport().getCamera();
-        King king = getKing(team);
 
         camera.update();
         b.setProjectionMatrix(camera.combined);
@@ -154,7 +151,7 @@ public class Board {
                 float xPos = x + getTileWidth() * cell.FILE;
                 float yPos = y + getTileHeight() * cell.RANK;
                 boolean containsPiece = cell.getPiece() != null;
-                boolean checkCell = cell.getPiece() == king && king.isInCheck();
+                boolean checkCell = cell.getPiece() instanceof King && ( (King)cell.getPiece()).isInCheck();
 
                 if (cell == selected)
                     b.draw(SELECT_TILE, xPos, yPos, getTileWidth(), getTileHeight());
@@ -214,44 +211,37 @@ public class Board {
     }
 
     /**
-     * Updates the current king's status (checked, can move, etc.)
+     * Updates the specified team's king's status (checked, can move, etc.)
      *
-     * @param king the {@code King} whose states to update
+     * @param team the {@code team} whose king's states to update
      */
-    public void updateKing(King king) {
-        Cell kingCell = getCellContaining(king);
-        Array<Cell> possibleMoves = new Array<Cell>();
+    public void updateKing(Team team) {
+        Cell kingCell = getCellContaining(getKing(team));
+        King king = (King)kingCell.getPiece();
+        Array<Cell> cellCache = new Array<Cell>();
+
         king.setCheck(false);
-
-        for (int i = 0; i < NUM_FILES * NUM_RANKS; i++) {
-            Cell c = CELLS[i / NUM_FILES][i % NUM_FILES];
-
-            possibleMoves.clear();
-
-            if (c.getPiece() == null || c.getPiece().getTeam() == king.getTeam())
-                continue;
-
-            possibleMoves.addAll(c.getPiece().getMoves(CELLS, c.FILE, c.RANK));
-
-            if (possibleMoves.contains(kingCell, true)) {
-                king.setCheck(true);
-            }
-        }
-
-        // Move checking
-        Array<Cell> moveCache = new Array<Cell>();
-
         king.setCanMove(false);
+
         for (Cell[] rank : CELLS) {
             for (Cell cell : rank) {
-                if (cell.getPiece() != null && cell.getPiece().getTeam() != king.getTeam()) {
-                    moveCache.clear();
-                    moveCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
-                    MoveFilters.filterCheck(this, moveCache, kingCell, king.getTeam());
+                if (cell.getPiece() != null && cell.getPiece().getTeam() != team) {
+                    cellCache.clear();
 
-                    if (moveCache.size > 0) {
+                    cellCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
+
+                    if (cellCache.contains(kingCell, true))
+                        king.setCheck(true);
+                }
+
+                if (!king.canMove() && cell.getPiece() != null && cell.getPiece().getTeam() == team) {
+                    cellCache.clear();
+                    cellCache.addAll(cell.getPiece().getMoves(CELLS, cell.FILE, cell.RANK));
+                    MoveFilters.filterCheck(this, cellCache, kingCell);
+
+                    if (cellCache.size > 0) {
+                        System.out.println("" + cell.getPiece() + cell);
                         king.setCanMove(true);
-                        break;
                     }
                 }
             }
