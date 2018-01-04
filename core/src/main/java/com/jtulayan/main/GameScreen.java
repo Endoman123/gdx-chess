@@ -1,8 +1,15 @@
 package com.jtulayan.main;
 import com.badlogic.gdx.ScreenAdapter;
+import com.jtulayan.chess.Board;
 
-/** First screen of the application. Displayed after the application is created. */
+/**
+ * Screen that displays the main game.
+ */
 public class GameScreen extends ScreenAdapter {
+    public GameScreen() {
+        Board board = new Board();
+    }
+
     @Override
     public void show() {
         // Prepare your screen here.
