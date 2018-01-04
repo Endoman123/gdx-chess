@@ -1,8 +1,14 @@
 # gdx-chess
 
-A [LibGDX](http://libgdx.badlogicgames.com/) project generated with [gdx-setup](https://github.com/czyzby/gdx-setup).
+Chess game developed in [LibGDX](http://libgdx.badlogicgames.com/).
 
-Project template includes simple launchers and a `Game` extension that sets the first screen.
+The goal is to do independent study on various algorithms used in chess engines. For funsies.
+
+## Goals
+- Create a chess game that properly follows official rules, with en passant and castling.
+- Utilize FEN notation and Memento Pattern for board state storage.
+- Create AI that can analyze board and pick best possible move (Minimax & Alpha-beta pruning).
+- Properly notate moves being made in game
 
 ## Gradle
 

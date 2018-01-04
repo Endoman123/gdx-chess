@@ -1,9 +1,8 @@
 package com.jtulayan.main;
-
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.ScreenAdapter;
 
 /** First screen of the application. Displayed after the application is created. */
-public class FirstScreen implements Screen {
+public class GameScreen extends ScreenAdapter {
     @Override
     public void show() {
         // Prepare your screen here.
