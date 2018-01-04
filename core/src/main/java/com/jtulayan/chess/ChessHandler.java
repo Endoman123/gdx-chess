@@ -16,7 +16,5 @@ public class ChessHandler {
         Board.Memento m = b.createMemento();
 
         b.restore(m);
-
-        System.out.println(m);
     }
 }

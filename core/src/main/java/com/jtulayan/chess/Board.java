@@ -1,5 +1,7 @@
 package com.jtulayan.chess;
 
+import java.util.Arrays;
+
 /**
  * Code representation of the game board.
  * In the context of the Memento Pattern, this is the Originator.
@@ -20,6 +22,7 @@ public class Board {
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
             {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
             {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
     };
@@ -27,7 +30,7 @@ public class Board {
     private boolean isWhiteTurn = true;
 
     private long castles = 0xFL;
-    private long enPassant = 0x80000000000000L;
+    private long enPassant = 0x0L;
 
     private int halfmoveClock = 0;
     private int fullmoveNumber = 1;
@@ -39,23 +42,86 @@ public class Board {
 
     }
 
+    /**
+     * Clears the board
+     */
+    public void clearBoard() {
+        int size = BOARD_STATE.length * BOARD_STATE[0].length;
+
+        for (int i = 0; i < 64; i++)
+            BOARD_STATE[i / 8][i % 8] = ' ';
+    }
+
+    // region Memento Pattern
     public Memento createMemento() {
         return new Memento(this);
     }
 
     public void restore(Memento memento) {
-        String state = memento.toString(), board = "", turn = "", castles = "", enPassant = "";
+        String state = memento.toString(), board = "", turn = "", cas = "", enp = "";
 
+        // Repopulate board
+        // This is done by clearing the board, then parsing
+        // the FEN board
         board = state.substring(0, state.indexOf(' '));
+        clearBoard();
+        for (int i = 0; i < 8; i++) {
+            String rank = board;
+
+            if (i < 7)
+                rank = board.substring(0, board.indexOf('/'));
+
+            int blankFile = 0;
+            for (int j = 0; j < 8; j++) {
+                char tile = rank.charAt(0);
+
+                if (Character.isDigit(tile) && blankFile == 0) {
+                    blankFile = Integer.parseInt("" + tile);
+
+                    if (rank.length() > 1)
+                        rank = rank.substring(1);
+                }
+
+                if (blankFile > 0) {
+                    BOARD_STATE[i][j] = ' ';
+                    blankFile -= 1;
+                } else {
+                    BOARD_STATE[i][j] = tile;
+
+                    if (rank.length() > 1)
+                        rank = rank.substring(1);
+                }
+            }
+
+            if (i < 7)
+                board = board.substring(board.indexOf('/') + 1);
+        }
+
         state = state.substring(state.indexOf(' ') + 1);
 
+        // Check if it is white's turn
         turn = state.substring(0, state.indexOf(' '));
+        isWhiteTurn = turn == "w";
         state = state.substring(state.indexOf(' ') + 1);
 
-        castles = state.substring(0, state.indexOf(' '));
+        // Get castling abilities
+        cas = state.substring(0, state.indexOf(' '));
+        castles = 0x0L;
+        if (cas.contains("K"))
+            castles += 0x8L;
+        if (cas.contains("Q"))
+            castles += 0x4L;
+        if (cas.contains("k"))
+            castles += 0x2L;
+        if (cas.contains("q"))
+            castles += 0x1L;
         state = state.substring(state.indexOf(' ') + 1);
 
-        enPassant = state.substring(0, state.indexOf(' '));
+        enp = state.substring(0, state.indexOf(' '));
+        if ("-".equals(enp))
+            enPassant = 0x0L;
+        else
+            enPassant = AlgebraicNotation.getTile(enp);
         state = state.substring(state.indexOf(' ') + 1);
 
         halfmoveClock = Integer.parseInt(state.substring(0, state.indexOf(' ')));
@@ -130,7 +196,7 @@ public class Board {
                 newMemento += "-";
             else {
                 int loc = bbEnPasant.indexOf('1');
-                newMemento += AlgebraicNotation.getTile(loc / 8, loc % 8);
+                newMemento += AlgebraicNotation.getAN(loc / 8, loc % 8);
             }
 
             newMemento += " ";
@@ -145,6 +211,7 @@ public class Board {
             return state;
         }
     }
+    // endregion
 
     /**
      * Class that contains some string constants for various moves and states in algebraic notation
@@ -159,7 +226,13 @@ public class Board {
         public static final String CASTLE_KINGSIDE = "0-0";
         public static final String CASTLE_QUEENSIDE = "0-0-0";
 
-        public static String getTile(int r, int f) {
+        /**
+         * Gets the AN for a given tile
+         * @param r the rank of the tile
+         * @param f the file of the tile
+         * @return string representation of the given rank and file
+         */
+        public static String getAN(int r, int f) {
             if (r > 7 || r < 0 ) {
                 throw new IllegalArgumentException("Rank is outside range!");
             } else if (f > 7  || f < 0) {
@@ -167,6 +240,21 @@ public class Board {
             }
 
             return "" + (char)(r + 97) + (f + 1);
+        }
+
+        /**
+         * Gets the location for a given tile
+         * @param an the AN for the tile
+         * @return long representing the bitboard of the tile location
+         */
+        public static long getTile(String an) {
+            if (an.length() != 2 || Character.isDigit(an.charAt(0)) || !Character.isDigit(an.charAt(1)))
+                throw new IllegalArgumentException("Invalid format!");
+
+            int rank = Integer.parseInt("" + an.charAt(1)) - 1;
+            int file = (int)an.charAt(0) - 96;
+
+            return (long)Math.pow(2, rank * 8 + file - 1);
         }
 
         private AlgebraicNotation() {
