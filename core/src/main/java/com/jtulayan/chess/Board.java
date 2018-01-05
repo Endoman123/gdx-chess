@@ -1,7 +1,5 @@
 package com.jtulayan.chess;
 
-import java.util.Arrays;
-
 /**
  * Code representation of the game board.
  * In the context of the Memento Pattern, this is the Originator.
@@ -16,7 +14,7 @@ import java.util.Arrays;
  * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">Forsyth-Edwards Notation (FEN)</a>
  */
 public class Board {
-    private final char[][] BOARD_STATE = {
+    public final char[][] BOARD_STATE = {
             {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
             {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
@@ -121,7 +119,7 @@ public class Board {
         if ("-".equals(enp))
             enPassant = 0x0L;
         else
-            enPassant = AlgebraicNotation.getTile(enp);
+            enPassant = AlgebraicNotation.getTileBitboard(enp);
         state = state.substring(state.indexOf(' ') + 1);
 
         halfmoveClock = Integer.parseInt(state.substring(0, state.indexOf(' ')));
@@ -234,27 +232,38 @@ public class Board {
          */
         public static String getAN(int r, int f) {
             if (r > 7 || r < 0 ) {
-                throw new IllegalArgumentException("Rank is outside range!");
+                throw new IllegalArgumentException("Rank is outside range! Was " + r);
             } else if (f > 7  || f < 0) {
-                throw new IllegalArgumentException("File is outside range!");
+                throw new IllegalArgumentException("File is outside range! Was " + f);
             }
 
-            return "" + (char)(r + 97) + (f + 1);
+            return "" + (char)(f + 97) + (r + 1);
         }
 
         /**
-         * Gets the location for a given tile
+         * Gets the location for a given tile as coordinates
          * @param an the AN for the tile
-         * @return long representing the bitboard of the tile location
+         * @return int array representing the rank and file of the tile location
          */
-        public static long getTile(String an) {
+        public static int[] getTileCoordinate(String an) {
             if (an.length() != 2 || Character.isDigit(an.charAt(0)) || !Character.isDigit(an.charAt(1)))
                 throw new IllegalArgumentException("Invalid format!");
 
             int rank = Integer.parseInt("" + an.charAt(1)) - 1;
             int file = (int)an.charAt(0) - 96;
 
-            return (long)Math.pow(2, rank * 8 + file - 1);
+            return new int[] {rank, file};
+        }
+
+        /**
+         * Gets the location for a given tile as a bitboard
+         * @param an the AN for the tile
+         * @return long representing the bitboard of the tile location
+         */
+        public static long getTileBitboard(String an) {
+            int[] loc = getTileCoordinate(an);
+
+            return (long)Math.pow(2, loc[0] * 8 + loc[1] - 1);
         }
 
         private AlgebraicNotation() {

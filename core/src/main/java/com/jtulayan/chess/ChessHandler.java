@@ -16,5 +16,7 @@ public class ChessHandler {
         Board.Memento m = b.createMemento();
 
         b.restore(m);
+
+        System.out.println(MoveGenerators.encodeMove(0, 16, ' ', MoveGenerators.F_PROMO | MoveGenerators.F_SPECIAL_1));
     }
 }
