@@ -1,5 +1,7 @@
 package com.jtulayan.chess;
 
+import com.sun.javafx.binding.StringConstant;
+
 /**
  * Code representation of the game board.
  * In the context of the Memento Pattern, this is the Originator.
@@ -14,7 +16,7 @@ package com.jtulayan.chess;
  * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">Forsyth-Edwards Notation (FEN)</a>
  */
 public class Board {
-    public final char[][] BOARD_STATE = {
+    private final char[][] BOARD_STATE = {
             {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
             {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
@@ -25,10 +27,13 @@ public class Board {
             {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
     };
 
+    private int posKingWhite = 4;
+    private int posKingBlack = 60;
+
     private boolean isWhiteTurn = true;
 
     private long castles = 0xFL;
-    private long enPassant = 0x0L;
+    private int enPassant = -1;
 
     private int halfmoveClock = 0;
     private int fullmoveNumber = 1;
@@ -41,6 +46,22 @@ public class Board {
     }
 
     /**
+     * Gets the board piece at the specific location
+     * @param rank the rank of the piece
+     * @param file the file of the piece
+     * @return the piece located at (file, rank)
+     */
+    public char getPiece(int rank, int file) {
+        if (rank > 7 || rank < 0 )
+            throw new IllegalArgumentException("Rank is outside range! Was " + rank);
+        else if (file > 7  || file < 0)
+            throw new IllegalArgumentException("File is outside range! Was " + file);
+
+
+        return BOARD_STATE[rank][file];
+    }
+
+    /**
      * Clears the board
      */
     public void clearBoard() {
@@ -48,6 +69,79 @@ public class Board {
 
         for (int i = 0; i < 64; i++)
             BOARD_STATE[i / 8][i % 8] = ' ';
+    }
+
+    /**
+     * Lists all possible moves that can be made.
+     *
+     * @return string of all moves.
+     *
+     * @see MoveGenerators
+     */
+    public String listPossibleMoves() {
+        String list = "";
+        for (int i = 0; i < 64; i++) {
+            String entry = "";
+            switch (BOARD_STATE[i / 8][i % 8]) {
+                case 'K':
+                    entry = MoveGenerators.listKingMoves(this, i);
+                    break;
+                case 'Q':
+                    entry = MoveGenerators.listQueenMoves(this, i);
+                    break;
+                case 'P':
+                    entry = MoveGenerators.listPawnMoves(this, i);
+                    break;
+                case 'N':
+                    entry = MoveGenerators.listKnightMoves(this, i);
+                    break;
+                case 'B':
+                    entry = MoveGenerators.listBishopMoves(this, i);
+                    break;
+                case 'R':
+                    entry = MoveGenerators.listRookMoves(this, i);
+                    break;
+                default:
+                    break;
+            }
+
+            if (entry.length() > 0)
+                list += entry + "/";
+        }
+
+        // Return everything but the redundant "/" at the end.
+        if (list.length() > 0)
+            list = list.substring(0, list.length() - 1);
+
+        return list;
+    }
+
+    public String toString() {
+        String board = "";
+
+        // Start with the board itself
+        for (int r = 0; r < 8; r++) {
+            board += "|";
+
+            for (int f = 0; f < 8; f++) {
+                char tile = BOARD_STATE[r][f];
+
+                if (tile == ' ')
+                    tile = '-';
+
+                board += tile;
+
+                if (f < 7)
+                    board += " ";
+            }
+
+            board += "|";
+
+            if (r < 7)
+                board += "\n";
+        }
+
+        return board;
     }
 
     // region Memento Pattern
@@ -117,9 +211,10 @@ public class Board {
 
         enp = state.substring(0, state.indexOf(' '));
         if ("-".equals(enp))
-            enPassant = 0x0L;
+            enPassant = 0;
         else
-            enPassant = AlgebraicNotation.getTileBitboard(enp);
+            enPassant = AlgebraicNotation.getTileIndex(enp);
+
         state = state.substring(state.indexOf(' ') + 1);
 
         halfmoveClock = Integer.parseInt(state.substring(0, state.indexOf(' ')));
@@ -188,14 +283,10 @@ public class Board {
             newMemento += " ";
 
             // Get en passant tile
-            String bbEnPasant = "000000000000000000000000000000000000000000000000000000000000000" + Long.toBinaryString(b.enPassant);
-            bbEnPasant = bbEnPasant.substring(bbEnPasant.length() - 64);
-            if (!bbEnPasant.contains("1") || bbEnPasant.indexOf('1') != bbEnPasant.lastIndexOf('1'))
+            if (b.enPassant == -1)
                 newMemento += "-";
-            else {
-                int loc = bbEnPasant.indexOf('1');
-                newMemento += AlgebraicNotation.getAN(loc / 8, loc % 8);
-            }
+            else
+                newMemento += AlgebraicNotation.getAN(b.enPassant / 8, b.enPassant % 8);
 
             newMemento += " ";
 
@@ -210,64 +301,4 @@ public class Board {
         }
     }
     // endregion
-
-    /**
-     * Class that contains some string constants for various moves and states in algebraic notation
-     *
-     * @see <a href="https://en.wikipedia.org/wiki/Algebraic_notation_(chess)">Algebraic Notation (AN)</a>
-     */
-    public static final class AlgebraicNotation {
-        public static final String CAPTURE = "x";
-        public static final String PROMOTION = "=";
-        public static final String CHECK = "+";
-        public static final String CHECKMATE = "++";
-        public static final String CASTLE_KINGSIDE = "0-0";
-        public static final String CASTLE_QUEENSIDE = "0-0-0";
-
-        /**
-         * Gets the AN for a given tile
-         * @param r the rank of the tile
-         * @param f the file of the tile
-         * @return string representation of the given rank and file
-         */
-        public static String getAN(int r, int f) {
-            if (r > 7 || r < 0 ) {
-                throw new IllegalArgumentException("Rank is outside range! Was " + r);
-            } else if (f > 7  || f < 0) {
-                throw new IllegalArgumentException("File is outside range! Was " + f);
-            }
-
-            return "" + (char)(f + 97) + (r + 1);
-        }
-
-        /**
-         * Gets the location for a given tile as coordinates
-         * @param an the AN for the tile
-         * @return int array representing the rank and file of the tile location
-         */
-        public static int[] getTileCoordinate(String an) {
-            if (an.length() != 2 || Character.isDigit(an.charAt(0)) || !Character.isDigit(an.charAt(1)))
-                throw new IllegalArgumentException("Invalid format!");
-
-            int rank = Integer.parseInt("" + an.charAt(1)) - 1;
-            int file = (int)an.charAt(0) - 96;
-
-            return new int[] {rank, file};
-        }
-
-        /**
-         * Gets the location for a given tile as a bitboard
-         * @param an the AN for the tile
-         * @return long representing the bitboard of the tile location
-         */
-        public static long getTileBitboard(String an) {
-            int[] loc = getTileCoordinate(an);
-
-            return (long)Math.pow(2, loc[0] * 8 + loc[1] - 1);
-        }
-
-        private AlgebraicNotation() {
-            // Never be able to construct this class, this is just a utility class.
-        }
-    }
 }

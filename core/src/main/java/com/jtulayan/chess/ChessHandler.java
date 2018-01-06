@@ -13,10 +13,7 @@ public class ChessHandler {
     public static void main(String[] args) {
         Board b = new Board();
 
-        Board.Memento m = b.createMemento();
-
-        b.restore(m);
-
-        System.out.println(MoveGenerators.encodeMove(0, 16, ' ', MoveGenerators.F_PROMO | MoveGenerators.F_SPECIAL_1));
+        System.out.println(b);
+        System.out.println(b.listPossibleMoves());
     }
 }
