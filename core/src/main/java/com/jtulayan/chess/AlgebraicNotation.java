@@ -39,10 +39,16 @@ public final class AlgebraicNotation {
      */
     public static int getTileIndex(String an) {
         if (an.length() != 2 || Character.isDigit(an.charAt(0)) || !Character.isDigit(an.charAt(1)))
-            throw new IllegalArgumentException("Invalid format!");
+            throw new IllegalArgumentException("Invalid format! Found " + an);
 
-        int rank = Integer.parseInt("" + an.charAt(1)) - 1;
-        int file = (int)an.charAt(0) - 96;
+        int rank = 8 - Integer.parseInt("" + an.charAt(1));
+        int file = (int)an.charAt(0) - 97;
+
+        if (rank > 7 || rank < 0 ) {
+            throw new IllegalArgumentException("Rank is outside range! Was " + rank);
+        } else if (file > 7  || file < 0) {
+            throw new IllegalArgumentException("File is outside range! Was " + file);
+        }
 
         return rank * 8 + file;
     }

@@ -46,7 +46,40 @@ public class Board {
     }
 
     /**
-     * Gets the board piece at the specific location
+     * Performs the specified move.
+     *
+     * @param move the move to make
+     */
+    public void makeMove(String move) {
+        int from = AlgebraicNotation.getTileIndex(move.substring(0, 2));
+        int to = AlgebraicNotation.getTileIndex(move.substring(2, 4));
+        char destPiece = move.charAt(4);
+        int flags = Integer.parseInt(move.substring(5));
+
+        char piece = BOARD_STATE[from / 8][from % 8];
+
+        BOARD_STATE[to / 8][to % 8] = piece;
+        BOARD_STATE[from / 8][from % 8] = ' ';
+    }
+
+    /**
+     * Undoes the specified move
+     * @param move the move to unmake
+     */
+    public void unmakeMove(String move) {
+
+    }
+
+    /**
+     * Notates the given move in AN.
+     * @param move the move to notate
+     */
+    public void notateMove(String move) {
+
+    }
+
+    /**
+     * Gets the board piece at the specific location.
      * @param rank the rank of the piece
      * @param file the file of the piece
      * @return the piece located at (file, rank)
@@ -62,6 +95,14 @@ public class Board {
     }
 
     /**
+     * Gets the en passant tile.
+     * @return the index of the en passant tile
+     */
+    public int getEnPassant() {
+        return enPassant;
+    }
+
+    /**
      * Clears the board
      */
     public void clearBoard() {
@@ -72,17 +113,22 @@ public class Board {
     }
 
     /**
-     * Lists all possible moves that can be made.
+     * Lists all possible moves that can be made for a given side.
      *
+     * @param isWhite if the team to get for is the white team
      * @return string of all moves.
      *
      * @see MoveGenerators
      */
-    public String listPossibleMoves() {
+    public String listPossibleMoves(boolean isWhite) {
         String list = "";
         for (int i = 0; i < 64; i++) {
             String entry = "";
-            switch (BOARD_STATE[i / 8][i % 8]) {
+            char curPiece = BOARD_STATE[i / 8][i % 8];
+            if (Character.isUpperCase(curPiece) != isWhite)
+                continue;
+
+            switch (Character.toUpperCase(curPiece)) {
                 case 'K':
                     entry = MoveGenerators.listKingMoves(this, i);
                     break;

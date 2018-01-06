@@ -38,7 +38,7 @@ public class MoveGenerators {
 
         // Encode destination piece and flags
         char d = destPiece == ' ' ? '-' : destPiece;
-        move += "" + d + flags;
+        move += "" + d + String.format("%02d", flags);
 
         return move;
     }
@@ -312,8 +312,23 @@ public class MoveGenerators {
         }
 
         // Check if possible captures can be made
-        if (file > 0 && Character.isUpperCase(b.getPiece(rank + dir, file - 1)) != isWhite) {
+        for (int f = -1; f <= 1; f += 2) {
+            int curFile = file + f;
+            if (curFile > 0 && curFile < 7) {
+                char curPiece = b.getPiece(rank + dir, file + f);
+                int flags = F_QUIET;
 
+                if (' ' != curPiece && Character.isUpperCase(curPiece) != isWhite)
+                    flags = F_CAPTURE;
+                else if (rank * 8 + dir * 8 + curFile == b.getEnPassant()) {
+                    curPiece = b.getPiece(rank - dir, file + f);
+                    flags = F_CAPTURE | F_SPECIAL_0;
+                }
+
+                int test = flags & F_CAPTURE;
+                if (test == F_CAPTURE)
+                    list += encodeMove(from, from + 8 * dir + f, curPiece, flags) + "/";
+            }
         }
 
         // Return everything but the redundant "/" at the end.

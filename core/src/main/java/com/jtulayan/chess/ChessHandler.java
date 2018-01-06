@@ -1,5 +1,7 @@
 package com.jtulayan.chess;
 
+import java.util.Scanner;
+
 /**
  * Game Caretaker, in context of Memento Pattern.
  *
@@ -13,7 +15,43 @@ public class ChessHandler {
     public static void main(String[] args) {
         Board b = new Board();
 
-        System.out.println(b);
-        System.out.println(b.listPossibleMoves());
+        boolean playing = true;
+        Scanner s = new Scanner(System.in);
+        while (playing) {
+            System.out.println(b);
+
+            String moves = b.listPossibleMoves(true);
+            String move = "";
+            System.out.println(moves);
+
+            boolean validLoc = false;
+            while (!validLoc) {
+                System.out.print("Pick a location: ");
+                String loc = "";
+                String from = s.nextLine();
+                try {
+                    AlgebraicNotation.getTileIndex(from);
+                    loc += from;
+                } catch (Exception e) {
+                    continue;
+                }
+                System.out.print("Pick a destination: ");
+                String to = s.nextLine();
+                try {
+                    AlgebraicNotation.getTileIndex(to);
+                    loc += to;
+                } catch (Exception e) {
+                    continue;
+                }
+
+                if (moves.contains(loc)) {
+                    move = loc;
+                    validLoc = true;
+                }
+            }
+
+            int moveLoc = moves.indexOf(move);
+            b.makeMove(moves.substring(moveLoc, moves.indexOf("/", moveLoc)));
+        }
     }
 }
