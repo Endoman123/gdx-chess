@@ -47,19 +47,122 @@ public class Board {
 
     /**
      * Performs the specified move.
+     * This assumes the given move is valid to begin with,
+     * i.e.: it is a legal move made
+     * by the side whose turn it currently is
      *
      * @param move the move to make
+     * @return AN of move
      */
-    public void makeMove(String move) {
-        int from = AlgebraicNotation.getTileIndex(move.substring(0, 2));
-        int to = AlgebraicNotation.getTileIndex(move.substring(2, 4));
+    public String makeMove(String move) {
+        // Info
+        String an = "";
+        boolean irreversible = false;
+
+        String fromAN = move.substring(0, 2);
+        String toAN = move.substring(2, 4);
+        int from = AlgebraicNotation.getTileIndex(fromAN);
+        int to = AlgebraicNotation.getTileIndex(toAN);
+        int fromRank = from / 8;
+        int fromFile = from % 8;
+        int toRank = to / 8;
+        int toFile = to % 8;
+
         char destPiece = move.charAt(4);
-        int flags = Integer.parseInt(move.substring(5));
 
-        char piece = BOARD_STATE[from / 8][from % 8];
+        // Parse flags
+        String flags = "" + "000" + Integer.toBinaryString(Integer.parseInt(move.substring(5)));
+        flags = flags.substring(flags.length() - 4);
+        boolean isPromo = '1' == flags.charAt(0);
+        boolean isCapture = '1' == flags.charAt(1);
+        boolean isSpecial1 = '1' == flags.charAt(2);
+        boolean isSpecial0 = '1' == flags.charAt(3);
 
-        BOARD_STATE[to / 8][to % 8] = piece;
-        BOARD_STATE[from / 8][from % 8] = ' ';
+        char piece = BOARD_STATE[fromRank][fromFile];
+        char pieceAN = Character.toUpperCase(piece);
+
+        // Perform move
+        BOARD_STATE[toRank][toFile] = piece;
+        BOARD_STATE[fromRank][fromFile] = ' ';
+
+        // Per-piece special things
+        enPassant = -1;
+        switch (pieceAN) {
+            case 'K':
+                break;
+            case 'Q':
+                break;
+            case 'N':
+                break;
+            case 'B':
+                break;
+            case 'R':
+                break;
+            case 'P':
+                irreversible = true;
+
+                if (isPromo) {
+                    // Promotion logic
+                } else if (isSpecial0) {
+                    int dir = (int)Math.signum(toRank - fromRank);
+
+                    if (isCapture) // En passant case
+                        BOARD_STATE[toRank - dir][toFile] = ' ';
+                    else // Double pawn push case
+                        enPassant = 8 * toRank - 8 * dir + fromFile;
+                }
+
+                break;
+        }
+
+        irreversible |= isCapture;
+
+        // Modify halfmove clock
+        if (!irreversible)
+            halfmoveClock++;
+        else
+            halfmoveClock = 0;
+
+        // Modify fullmove counter
+        if (!isWhiteTurn)
+            fullmoveNumber++;
+
+        // Turn over
+        isWhiteTurn = !isWhiteTurn;
+
+        // Notate the move
+        if (!isPromo && !isCapture && isSpecial1) { // It's some type of castle
+            if (isSpecial0)
+                an = AlgebraicNotation.CASTLE_QUEENSIDE;
+            else
+                an = AlgebraicNotation.CASTLE_KINGSIDE;
+        } else if (pieceAN != 'P') {
+            an += pieceAN;
+            if (isCapture)
+                an += AlgebraicNotation.CAPTURE;
+            an += toAN;
+        } else if (pieceAN == 'P') {
+            if (isCapture) {
+                an += fromAN.charAt(0) + AlgebraicNotation.CAPTURE + toAN;
+                if (isSpecial0) // En passant
+                    an += AlgebraicNotation.EN_PASSANST;
+            } else {
+                an += toAN;
+                if (isPromo) {
+                    an += AlgebraicNotation.PROMOTION;
+                    if (isSpecial1 && isSpecial0)
+                        an += 'Q';
+                    else if (!isSpecial1 && isSpecial0)
+                        an += 'B';
+                    else if (isSpecial1 && !isSpecial0)
+                        an += 'R';
+                    else
+                        an += 'N';
+                }
+            }
+        }
+
+        return an;
     }
 
     /**
@@ -100,6 +203,10 @@ public class Board {
      */
     public int getEnPassant() {
         return enPassant;
+    }
+
+    public boolean isWhiteTurn() {
+        return isWhiteTurn;
     }
 
     /**

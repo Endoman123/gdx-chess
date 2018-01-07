@@ -17,10 +17,10 @@ public class MoveGenerators {
     // this should make total sense.
     public static final int
         F_QUIET = 0x0,
-        F_CAPTURE = 0x4,
         F_PROMO = 0x8,
-        F_SPECIAL_0 = 0x1,
-        F_SPECIAL_1 = 0x2;
+        F_CAPTURE = 0x4,
+        F_SPECIAL_1 = 0x2,
+        F_SPECIAL_0 = 0x1;
 
     /**
      * Encodes the move given the properties of the move.
@@ -69,7 +69,7 @@ public class MoveGenerators {
 
             // If it's a capture
             if (' ' != curPiece)
-                flags = F_CAPTURE;
+                flags |= F_CAPTURE;
 
             list += encodeMove(from, cur, ' ', flags) + "/";
         }
@@ -113,10 +113,10 @@ public class MoveGenerators {
                     blocked = ' ' != curPiece;
 
                     if (blocked) {
-                        if (Character.isUpperCase(curPiece) == isWhite)
-                            break;
+                        if (Character.isUpperCase(curPiece) != isWhite)
+                            flags |= F_CAPTURE;
                         else
-                            flags = F_CAPTURE;
+                            break;
                     }
 
                     list += encodeMove(from, cur, ' ', flags) + "/";
@@ -165,12 +165,12 @@ public class MoveGenerators {
                 // Color check
                 if (' ' != piece) {
                     if (Character.isUpperCase(piece) != isWhite)
-                        flags &= F_CAPTURE;
+                        flags |= F_CAPTURE;
                     else
                         continue;
                 }
 
-                list += encodeMove(from, rank * 8 + r * 8 + file + f, piece, flags) + "/";
+                list += encodeMove(from, curRank * 8 + curFile, piece, flags) + "/";
             }
         }
 
@@ -294,24 +294,26 @@ public class MoveGenerators {
         int promoRank = 0;
         boolean starting = false;
 
+        // Decide on color-specific items now, makes this process much easier.
         if (isWhite) {
             dir = -1; // Go up
-            promoRank = 7;
-            starting = rank == 1; // On white's starting rank
+            promoRank = 0;
+            starting = rank == 6; // On white's starting rank
         } else {
             dir = 1; // Go down
-            promoRank = 0;
-            starting = rank == 6;
+            promoRank = 7;
+            starting = rank == 1;
         }
 
         // If the space in front of it is empty, it is pseudo-legal.
         if (b.getPiece(rank + dir, file) == ' ') {
             list += encodeMove(from, from + 8 * dir, ' ', F_QUIET) + "/";
-            if (b.getPiece(rank + dir, file) == ' ')
+            if (starting && b.getPiece(rank + dir, file) == ' ')
                 list += encodeMove(from, from + 16 * dir, ' ', F_SPECIAL_0) + "/";
         }
 
         // Check if possible captures can be made
+        int attackRank = rank + dir;
         for (int f = -1; f <= 1; f += 2) {
             int curFile = file + f;
             if (curFile > 0 && curFile < 7) {
@@ -320,13 +322,12 @@ public class MoveGenerators {
 
                 if (' ' != curPiece && Character.isUpperCase(curPiece) != isWhite)
                     flags = F_CAPTURE;
-                else if (rank * 8 + dir * 8 + curFile == b.getEnPassant()) {
-                    curPiece = b.getPiece(rank - dir, file + f);
+                else if (' ' == curPiece && attackRank * 8 + curFile == b.getEnPassant()) {
+                    curPiece = isWhite ? 'p' : 'P';
                     flags = F_CAPTURE | F_SPECIAL_0;
                 }
 
-                int test = flags & F_CAPTURE;
-                if (test == F_CAPTURE)
+                if ((flags & F_CAPTURE) == F_CAPTURE)
                     list += encodeMove(from, from + 8 * dir + f, curPiece, flags) + "/";
             }
         }

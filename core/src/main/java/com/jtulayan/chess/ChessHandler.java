@@ -20,9 +20,8 @@ public class ChessHandler {
         while (playing) {
             System.out.println(b);
 
-            String moves = b.listPossibleMoves(true);
+            String moves = b.listPossibleMoves(b.isWhiteTurn());
             String move = "";
-            System.out.println(moves);
 
             boolean validLoc = false;
             while (!validLoc) {
@@ -51,7 +50,7 @@ public class ChessHandler {
             }
 
             int moveLoc = moves.indexOf(move);
-            b.makeMove(moves.substring(moveLoc, moves.indexOf("/", moveLoc)));
+            System.out.println(b.makeMove(moves.substring(moveLoc, moves.indexOf("/", moveLoc))));
         }
     }
 }
