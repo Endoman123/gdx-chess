@@ -1,7 +1,5 @@
 package com.jtulayan.chess;
 
-import com.sun.javafx.binding.StringConstant;
-
 /**
  * Code representation of the game board.
  * In the context of the Memento Pattern, this is the Originator.
@@ -262,11 +260,27 @@ public class Board {
                 list += entry + "/";
         }
 
+        // Filter king captures
+
         // Return everything but the redundant "/" at the end.
         if (list.length() > 0)
             list = list.substring(0, list.length() - 1);
 
         return list;
+    }
+
+    public String filterKingCaptures(Board b, String ml) {
+        String moveList = "";
+        Memento memento = null;
+        
+        // Parse each move and check if it captures the opponent's king.
+        int i = 0;
+        boolean finished = false;
+        while (!finished) {
+            memento = b.createMemento();
+        }
+        
+        return moveList;
     }
 
     public String toString() {

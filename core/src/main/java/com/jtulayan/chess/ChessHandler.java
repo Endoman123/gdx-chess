@@ -23,6 +23,8 @@ public class ChessHandler {
             String moves = b.listPossibleMoves(b.isWhiteTurn());
             String move = "";
 
+            System.out.println(moves);
+
             boolean validLoc = false;
             while (!validLoc) {
                 System.out.print("Pick a location: ");
