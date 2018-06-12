@@ -1,5 +1,7 @@
 package com.jtulayan.chess;
 
+import java.util.ArrayList;
+
 /**
  * Class containing all move generators.
  *
@@ -337,5 +339,27 @@ public class MoveGenerators {
             list = list.substring(0, list.length() - 1);
 
         return list;
+    }
+
+    /**
+     * Filters king captures from the list
+     * 
+     * @param ml movelist to filter
+     */
+    public String filterKingCaptures(String ml) {
+        ArrayList<String> moveList = new ArrayList<>();
+        
+        // Parse each move and check if it captures the opponent's king.
+        for (int i = 0; i < moveList.size(); i++) {
+            String move = moveList.get(i);
+            char capPiece = move.toLowerCase().charAt(4);
+            int flags = Integer.parseInt(move.substring(5)); 
+            
+            if (capPiece == 'k') {
+                
+            }
+        }
+        
+        return moveList;
     }
 }

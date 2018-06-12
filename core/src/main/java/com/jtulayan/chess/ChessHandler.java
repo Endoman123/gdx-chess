@@ -30,14 +30,17 @@ public class ChessHandler {
                 System.out.print("Pick a location: ");
                 String loc = "";
                 String from = s.nextLine();
+
                 try {
                     AlgebraicNotation.getTileIndex(from);
                     loc += from;
                 } catch (Exception e) {
                     continue;
                 }
+
                 System.out.print("Pick a destination: ");
                 String to = s.nextLine();
+                
                 try {
                     AlgebraicNotation.getTileIndex(to);
                     loc += to;

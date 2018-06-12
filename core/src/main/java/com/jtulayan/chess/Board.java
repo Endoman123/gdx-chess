@@ -1,4 +1,5 @@
 package com.jtulayan.chess;
+import java.util.ArrayList;
 
 /**
  * Code representation of the game board.
@@ -261,26 +262,13 @@ public class Board {
         }
 
         // Filter king captures
+        list = filterKingCaptures(list);
 
         // Return everything but the redundant "/" at the end.
         if (list.length() > 0)
             list = list.substring(0, list.length() - 1);
 
         return list;
-    }
-
-    public String filterKingCaptures(Board b, String ml) {
-        String moveList = "";
-        Memento memento = null;
-        
-        // Parse each move and check if it captures the opponent's king.
-        int i = 0;
-        boolean finished = false;
-        while (!finished) {
-            memento = b.createMemento();
-        }
-        
-        return moveList;
     }
 
     public String toString() {
