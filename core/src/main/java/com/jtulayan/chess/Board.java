@@ -15,17 +15,8 @@ import java.util.ArrayList;
  * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">Forsyth-Edwards Notation (FEN)</a>
  */
 public class Board {
-    private final char[][] BOARD_STATE = {
-            {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
-            {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-            {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
-    };
-
+    private final char[][] BOARD_STATE;
+    
     private int posKingWhite = 4;
     private int posKingBlack = 60;
 
@@ -38,18 +29,36 @@ public class Board {
     private int fullmoveNumber = 1;
 
     /**
-     * Initializes board.
+     * Initializes board given the board state
+     * 
+     * @param boardState the char array to define the starting board layout
+     */
+    public Board(char[][] boardState) {
+        BOARD_STATE = boardState;
+    }
+
+    /**
+     * Initializes board with initial position
      */
     public Board() {
-
+        this(new char[][] {
+            {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+            {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+            {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+        });
     }
 
     /**
      * Performs the specified move.
      * This assumes the given move is valid to begin with,
      * i.e.: it is a legal move made
-     * by the side whose turn it currently is
      *
+     * by the side whose turn it currently is
      * @param move the move to make
      * @return AN of move
      */

@@ -13,7 +13,16 @@ import java.util.Scanner;
  */
 public class ChessHandler {
     public static void main(String[] args) {
-        Board b = new Board();
+        Board b = new Board(new char[][] {
+            {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+            {' ', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+            {'p', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '},
+            {'P', 'P', 'P', 'P', ' ', 'P', 'P', 'P'},
+            {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+        });
 
         boolean playing = true;
         Scanner s = new Scanner(System.in);

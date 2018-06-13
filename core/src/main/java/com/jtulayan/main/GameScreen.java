@@ -1,13 +1,14 @@
 package com.jtulayan.main;
+
 import com.badlogic.gdx.ScreenAdapter;
-import com.jtulayan.chess.Board;
+import com.jtulayan.chess.ChessHandler;
 
 /**
  * Screen that displays the main game.
  */
 public class GameScreen extends ScreenAdapter {
     public GameScreen() {
-        Board board = new Board();
+        ChessHandler.main(null);
     }
 
     @Override
