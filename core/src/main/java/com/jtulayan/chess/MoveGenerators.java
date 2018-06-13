@@ -1,6 +1,6 @@
 package com.jtulayan.chess;
 
-import java.util.ArrayList;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * Class containing all move generators.
@@ -217,7 +217,7 @@ public class MoveGenerators {
                             flags = F_CAPTURE;
                     }
 
-                    list += encodeMove(from, cur, ' ', flags) + "/";
+                    list += encodeMove(from, cur, curPiece, flags) + "/";
 
                     counter++;
                 }
@@ -346,20 +346,19 @@ public class MoveGenerators {
      * 
      * @param ml movelist to filter
      */
-    public String filterKingCaptures(String ml) {
-        ArrayList<String> moveList = new ArrayList<>();
-        
+    public static String filterKingCaptures(String ml) {
+        Array<String> moveList = new Array<>(ml.split("/"));
+
         // Parse each move and check if it captures the opponent's king.
-        for (int i = 0; i < moveList.size(); i++) {
+        for (int i = 0; i < moveList.size; i++) {
             String move = moveList.get(i);
             char capPiece = move.toLowerCase().charAt(4);
-            int flags = Integer.parseInt(move.substring(5)); 
+            int flags = Integer.parseInt(move.substring(5));
             
-            if (capPiece == 'k') {
-                
-            }
+            if (capPiece == 'k' && (flags & F_CAPTURE) == F_CAPTURE)
+                moveList.removeIndex(i);
         }
-        
-        return moveList;
+
+        return moveList.toString("/");
     }
 }

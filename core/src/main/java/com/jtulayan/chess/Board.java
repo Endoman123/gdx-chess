@@ -262,7 +262,7 @@ public class Board {
         }
 
         // Filter king captures
-        list = filterKingCaptures(list);
+        list = MoveGenerators.filterKingCaptures(list);
 
         // Return everything but the redundant "/" at the end.
         if (list.length() > 0)
