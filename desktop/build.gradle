@@ -22,4 +22,5 @@ jar {
 
 run {
   ignoreExitValue = true
+  standardInput = System.in
 }
