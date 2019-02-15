@@ -57,9 +57,9 @@ public class Board {
      * Performs the specified move.
      * This assumes the given move is valid to begin with,
      * i.e.: it is a legal move made
-     *
      * by the side whose turn it currently is
-     * @param move the move to make
+     * 
+     * @param move the move to make, notated as  "<origin_space><dest_space>"
      * @return AN of move
      */
     public String makeMove(String move) {
@@ -171,22 +171,6 @@ public class Board {
         }
 
         return an;
-    }
-
-    /**
-     * Undoes the specified move
-     * @param move the move to unmake
-     */
-    public void unmakeMove(String move) {
-
-    }
-
-    /**
-     * Notates the given move in AN.
-     * @param move the move to notate
-     */
-    public void notateMove(String move) {
-
     }
 
     /**
