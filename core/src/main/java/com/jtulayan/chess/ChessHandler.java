@@ -10,6 +10,8 @@ import java.util.Scanner;
  *
  * More or less, this will actually handle the backend of the game.
  * No GUI is drawn in this class.
+ *
+ * Test class only.
  */
 public class ChessHandler {
     public static void main(String[] args) {

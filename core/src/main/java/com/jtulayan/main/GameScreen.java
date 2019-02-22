@@ -8,12 +8,12 @@ import com.jtulayan.chess.ChessHandler;
  */
 public class GameScreen extends ScreenAdapter {
     public GameScreen() {
-        ChessHandler.main(null);
+        
     }
 
     @Override
     public void show() {
-        // Prepare your screen here.
+        ChessHandler.main(null);
     }
 
     @Override
