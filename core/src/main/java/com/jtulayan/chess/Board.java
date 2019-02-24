@@ -22,7 +22,7 @@ public class Board {
 
     private boolean isWhiteTurn = true;
 
-    private long castles = 0xFL;
+    private int castles = 0xF;
     private int enPassant = -1;
 
     private int halfmoveClock = 0;
@@ -205,8 +205,6 @@ public class Board {
      * Clears the board
      */
     public void clearBoard() {
-        int size = BOARD_STATE.length * BOARD_STATE[0].length;
-
         for (int i = 0; i < 64; i++)
             BOARD_STATE[i / 8][i % 8] = ' ';
     }
@@ -346,15 +344,15 @@ public class Board {
 
         // Get castling abilities
         cas = state.substring(0, state.indexOf(' '));
-        castles = 0x0L;
+        castles = 0x0;
         if (cas.contains("K"))
-            castles += 0x8L;
+            castles += 0x8;
         if (cas.contains("Q"))
-            castles += 0x4L;
+            castles += 0x4;
         if (cas.contains("k"))
-            castles += 0x2L;
+            castles += 0x2;
         if (cas.contains("q"))
-            castles += 0x1L;
+            castles += 0x1;
         state = state.substring(state.indexOf(' ') + 1);
 
         enp = state.substring(0, state.indexOf(' '));
